@@ -1,0 +1,163 @@
+@import url("./global.css");
+body {
+  width: 100%;
+  height: 100vh;
+  padding: 10px;
+  display: flex; }
+  body .auth {
+    width: 650px;
+    height: 100%;
+    position: relative; }
+    body .auth > img {
+      height: 60px;
+      width: 60px;
+      object-fit: contain;
+      left: 15px;
+      top: 15px;
+      position: absolute; }
+    body .auth .center {
+      position: absolute;
+      top: 50%;
+      align-items: center;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 80%;
+      display: flex;
+      flex-direction: column;
+      gap: 20px; }
+      body .auth .center .pic-selector {
+        position: relative;
+        width: 80%;
+        display: flex;
+        align-items: center;
+        flex-direction: column; }
+        body .auth .center .pic-selector > img {
+          width: 150px;
+          height: 150px;
+          border-radius: 50%;
+          object-fit: cover; }
+        body .auth .center .pic-selector .pics {
+          position: absolute;
+          top: 80%;
+          left: 50%;
+          gap: 25px;
+          width: 100%;
+          justify-content: space-evenly;
+          transform: translateX(-50%);
+          display: flex;
+          opacity: 0;
+          visibility: hidden;
+          transition: all ease-in-out 0.5s;
+          border-radius: 6px;
+          box-shadow: rgba(0, 0, 0, 0.123) 0px 0px 15px;
+          flex-wrap: wrap;
+          backdrop-filter: blur(5px);
+          background: rgba(253, 253, 253, 0.705);
+          padding: 25px; }
+          body .auth .center .pic-selector .pics img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover; }
+          body .auth .center .pic-selector .pics div {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100px;
+            border-radius: 50%;
+            height: 100px;
+            background: #e2e2e2; }
+            body .auth .center .pic-selector .pics div img {
+              width: 40%;
+              height: 40%; }
+      body .auth .center > input {
+        font-size: 1.2rem;
+        padding: 10px 15px;
+        outline: none;
+        width: 200px;
+        border: none;
+        border-bottom: solid rgba(0, 0, 0, 0.219) 1.5px; }
+      body .auth .center .input-box {
+        width: 100%;
+        padding: 15px 17px;
+        border-radius: 9px;
+        border: solid #c9c9c9 1.5px;
+        height: 60px;
+        display: flex;
+        gap: 16px; }
+        body .auth .center .input-box img {
+          height: 100%;
+          transition: all ease-in-out 1.2s;
+          object-fit: contain; }
+        body .auth .center .input-box input {
+          outline: none;
+          border: none;
+          background: none;
+          width: 100%;
+          font-size: 1.2rem;
+          color: black; }
+          body .auth .center .input-box input::placeholder {
+            color: #a3a3a3; }
+      body .auth .center .hori {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        width: 100%; }
+        body .auth .center .hori p {
+          font-size: 1.3rem;
+          color: grey;
+          cursor: pointer; }
+        body .auth .center .hori button {
+          padding: 18px 23px;
+          color: white;
+          outline: none;
+          font-size: 1rem;
+          border: none;
+          transition: all ease-in-out 0.2s;
+          border-radius: 10px;
+          background: #3939a8; }
+          body .auth .center .hori button:hover {
+            background: #25256b; }
+          body .auth .center .hori button:active {
+            transform: scale(0.9); }
+  body .display {
+    width: calc(100% - 650px);
+    height: 100%;
+    cursor: default;
+    position: relative; }
+    body .display img {
+      height: 100%;
+      width: 100%;
+      object-fit: cover;
+      position: absolute;
+      left: 0;
+      top: 0; }
+    body .display .details {
+      width: 70%;
+      left: 70px;
+      top: 60px;
+      display: flex;
+      flex-direction: column;
+      position: absolute; }
+      body .display .details p {
+        color: white;
+        user-select: none;
+        font-size: 1.6rem;
+        text-shadow: rgba(0, 0, 0, 0.199) 0px 0px 5px; }
+      body .display .details h1 {
+        color: white;
+        user-select: none;
+        text-shadow: rgba(0, 0, 0, 0.199) 0px 0px 5px;
+        font-size: 5.1rem; }
+    body .display .controls {
+      position: absolute;
+      bottom: 70px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 10px; }
+      body .display .controls div {
+        width: 15px;
+        height: 15px;
+        box-shadow: rgba(0, 0, 0, 0.199) 0px 0px 5px;
+        background: white;
+        border-radius: 50%; }

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auth</title>
+    <link rel="stylesheet" href="../css/auth.css">
+</head>
+<body>
+    <div class="auth">
+        <img src="../assets/logo.png" alt="logo"/>
+        <div class="center">
+            <div class="pic-selector" style="display: none;">
+                <img src="../assets/userSamples/user0.png" data-picName="user0.png" alt="userpic" id="userpicView"/>
+                <input type="file" id="userPicInput" style="display: none;"/>
+                <div class="pics">
+                    <img alt="userpic" src="../assets/userSamples/user3.png" data-picName="user3.png"/>
+                    <img alt="userpic" src="../assets/userSamples/user1.png" data-picName="user1.png"/>
+                    <img alt="userpic" src="../assets/userSamples/user4.png" data-picName="user4.png"/>
+                    <img alt="userpic" src="../assets/userSamples/user5.png" data-picName="user5.png"/>
+                    <img alt="userpic" src="../assets/userSamples/user2.png" data-picName="user2.png"/>
+                    <div id="userpicaction"> 
+                        <img style="pointer-events: none;" src="../assets/plus.png" alt="add"/>
+                    </div>
+                </div>
+            </div>
+            <input type="text" placeholder="UserName" style="display: none;"/>
+            <div class="input-box">
+                <img alt="pic" src="../assets/user.png"/>
+                <input type="email" placeholder="Your e-mail"/>
+            </div>
+            <div class="input-box">
+                <img alt="pic" src="../assets/key.png"/>
+                <input type="password" placeholder="Password"/>
+            </div>
+            <div class="hori">
+                <p id="registerBtn">Register</p>
+                <p>Forgot Password?</p>
+                <button style="margin-left: auto;">Sign In</button>
+            </div>
+            <div class="hori" style="display: none;">
+                <p id="loginBtn">Login</p>
+                <button style="margin-left: auto;">Sign Up</button>
+            </div>
+        </div>
+    </div>
+    <div class="display">
+        <img src="../assets/authpic3.jpg" style="opacity: 1;" draggable="false" alt="authpic3">
+        <img src="../assets/authpic0.jpg" style="opacity: 0;" draggable="false" alt="authpic0">
+        <img src="../assets/authpic2.jpg" style="opacity: 0;" draggable="false" alt="authpic2">
+        <img src="../assets/authpic1.jpg" style="opacity: 0;" draggable="false" alt="authpic1">
+        <div class="details">
+            <p>Connect with your</p>
+            <h1>Friends & Family</h1>
+        </div>
+        <div class="controls">
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+    </div>
+    <script src="../dist/scripts/auth.js" type="module"></script>
+</body>
+</html>
