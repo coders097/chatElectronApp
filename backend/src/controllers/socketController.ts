@@ -2,6 +2,8 @@ import socket from 'socket.io';
 import Group from '../models/Group';
 import User from '../models/User';
 import Conversation from '../models/Conversation';
+import Message from '../models/Message';
+import jwtVerify from '../middlewares/socketJwtVerify';
 
 interface ConnectedClients{
     [key: string]: socket.Socket<any, any, any, any>;
@@ -38,208 +40,233 @@ let _=(io:socket.Server<any,any,any,any>)=>{
         socket.on('create-group',async (data:{
             _id:string,
             pic:string,
-            name:string
+            name:string,
+            token?:string
         },cb:(args:any)=>{})=>{
-            try{
-                let user=await User.findById(data._id);
-                if(user){
-                    let group=await Group.create({
-                        name:data.name,
-                        pic:data.pic,
-                        users:[data._id]
-                    });
-                    user.groups.push(group._id);
-                    user.save()
-                    .then(()=>{
-                        
-                        groupIdToNameMap[group._id]=data.name;
-                        socket.join(data.name);
-
-                        cb({
-                            success:true,
-                            data:{
-                                name:group.name,
-                                pic:group.pic,
-                                _id:group._id
-                            }
-                        }); 
-                    }).catch((err:Error)=>{
+            if(data?.token)
+                jwtVerify(data.token,async ()=>{
+                    try{
+                        let user=await User.findById(data._id);
+                        if(user){
+                            let group=await Group.create({
+                                name:data.name,
+                                pic:data.pic,
+                                users:[data._id]
+                            });
+                            user.groups.push(group._id);
+                            user.save()
+                            .then(()=>{
+                                
+                                groupIdToNameMap[group._id]=data.name;
+                                socket.join(data.name);
+        
+                                cb({
+                                    success:true,
+                                    data:{
+                                        name:group.name,
+                                        pic:group.pic,
+                                        _id:group._id
+                                    }
+                                }); 
+                            }).catch((err:Error)=>{
+                                cb({
+                                    success:false,
+                                    error:"SERVER ERROR"
+                                }); 
+                                Group.findByIdAndDelete(group._id)
+                                .then(()=>{}).catch(()=>{});
+                            });
+                        }else{
+                            cb({
+                                success:false,
+                                error:"INVALID ID"
+                            });    
+                        }
+                    }catch(e){
                         cb({
                             success:false,
                             error:"SERVER ERROR"
-                        }); 
-                        Group.findByIdAndDelete(group._id)
-                        .then(()=>{}).catch(()=>{});
-                    });
-                }else{
+                        });
+                    }
+                },(errorMessage:string)=>{
                     cb({
                         success:false,
-                        error:"INVALID ID"
+                        error:errorMessage
                     });    
-                }
-            }catch(e){
-                cb({
-                    success:false,
-                    error:"SERVER ERROR"
                 });
-            }
             // send a response reply to _id
         });
 
         // Join a group
         socket.on('join-group',async (data:{
             _id:string,
-            groupId:string
+            groupId:string,
+            token?:string
         },cb:(args:any)=>{})=>{
-
-            // Score.find().slice('players', 5).
-            // send a response reply to _id
-            try{
-                let user=await User.findById(data._id);
-                let group=await Group.findById(data.groupId)
-                .slice('messages',-60)
-                .populate('messages');
-                if(user && group){
-                    let index=(group.users as string[]).find((id:string)=>{
-                        return id.toString()==data._id;
-                    });
-                    if(index){
-                        cb({
-                            success:false,
-                            error:"ALREADY JOINED"
-                        });                        
-                    }else{
-                        user.groups.push(group._id);
-                        group.users.push(data._id);
-                        user.save().then(()=>{
-                            group.save().then(()=>{
-
-                                groupIdToNameMap[data.groupId]=group.name;
-                                socket.join(group.name);
-
-                                cb({
-                                    success:true,
-                                    data:group.messages
-                                });
-                            }).catch((e:Error)=>{
+            if(data?.token)
+                jwtVerify(data.token,async ()=>{
+                    // Score.find().slice('players', 5).
+                    // send a response reply to _id
+                    try{
+                        let user=await User.findById(data._id);
+                        let group=await Group.findById(data.groupId)
+                        .slice('messages',-60)
+                        .populate('messages');
+                        if(user && group){
+                            let index=(group.users as string[]).find((id:string)=>{
+                                return id.toString()==data._id;
+                            });
+                            if(index){
                                 cb({
                                     success:false,
-                                    error:"SERVER ERROR"
-                                });
-                                user.groups=user.groups.filter((con:string)=>{
-                                    return con.toString()!=data.groupId;
-                                });
-                                user.save().then(()=>{}).catch(()=>{});
-                            });
-                        }).catch((e:Error)=>{
-                            cb({
-                                success:false,
-                                error:"SERVER ERROR"
-                            });
-                        });
-                    }
-                }else{
-                    cb({
-                        success:false,
-                        error:"INVALID IDS"
-                    });
-                }
-            }catch(e){
-                cb({
-                    success:false,
-                    error:"SERVER ERROR"
-                });
-            }
-            
-        });
+                                    error:"ALREADY JOINED"
+                                });                        
+                            }else{
+                                user.groups.push(group._id);
+                                group.users.push(data._id);
+                                user.save().then(()=>{
+                                    group.save().then(()=>{
 
-        // Create a conversion
-        socket.on('create-conversion',async (data:{
-            _id:string,
-            friendId:string
-        },cb:(args:any)=>{})=>{
-            try{
-                let user=await User.findById(data._id);
-                let friend=await User.findById(data.friendId);
-                if(user && friend){
-                    let conversation=await Conversation.create({
-                        personOne:data._id,
-                        personTwo:data.friendId
-                    });
-                    if(conversation){
-                        user.conversations.push(conversation._id);
-                        friend.conversations.push(conversation._id);
-                        user.save().then(()=>{
-                            friend.save().then(()=>{
-                                // new-conversation
-                                if(mapUserIdToSocketId[data.friendId] && connectedClients[mapUserIdToSocketId[data.friendId]]){
-                                    connectedClients[mapUserIdToSocketId[data.friendId]].emit('new-conversation',{
-                                        userId:data._id,
-                                        userName:user.name,
-                                        userPic:user.pic
+                                        groupIdToNameMap[data.groupId]=group.name;
+                                        socket.join(group.name);
+
+                                        cb({
+                                            success:true,
+                                            data:group.messages
+                                        });
+                                    }).catch((e:Error)=>{
+                                        cb({
+                                            success:false,
+                                            error:"SERVER ERROR"
+                                        });
+                                        user.groups=user.groups.filter((con:string)=>{
+                                            return con.toString()!=data.groupId;
+                                        });
+                                        user.save().then(()=>{}).catch(()=>{});
                                     });
-                                }
-                                cb({
-                                    success:true
+                                }).catch((e:Error)=>{
+                                    cb({
+                                        success:false,
+                                        error:"SERVER ERROR"
+                                    });
                                 });
-                            }).catch((err:Error)=>{
-                                cb({
-                                    success:false,
-                                    error:"SERVER ERROR"
-                                });   
-                                Conversation.findByIdAndDelete(conversation._id)
-                                .then(()=>{}).catch(()=>{});
-                                user.conversations=user.conversations.filter((con:string)=>{
-                                    return con.toString()!=conversation._id.toString();
-                                });
-                                user.save().then(()=>{}).catch(()=>{});
-                            });
-                        }).catch((err:Error)=>{
+                            }
+                        }else{
                             cb({
                                 success:false,
-                                error:"SERVER ERROR"
-                            });    
-                        });
-                    }else{
+                                error:"INVALID IDS"
+                            });
+                        }
+                    }catch(e){
                         cb({
                             success:false,
                             error:"SERVER ERROR"
                         });
                     }
-                }else{
+                },(errorMessage:string)=>{
                     cb({
                         success:false,
-                        error:"INVALID IDS"
-                    });
-                }
-            }catch(e){
-                cb({
-                    success:false,
-                    error:"SERVER ERROR"
+                        error:errorMessage
+                    });   
                 });
-            }
-            
-            // new-conversation to friendId
-            // send a response reply to _id
+        });
 
-            /*
-                // server-side
-                io.on("connection", (socket) => {
-                socket.on("update item", (arg1, arg2, callback) => {
-                    console.log(arg1); // 1
-                    console.log(arg2); // { name: "updated" }
-                    callback({
-                    status: "ok"
-                    });
+        // Create a conversion
+        socket.on('create-conversion',async (data:{
+            _id:string,
+            friendId:string,
+            token?:string
+        },cb:(args:any)=>{})=>{
+            if(data?.token)
+                jwtVerify(data.token,async ()=>{
+                    try{
+                        let user=await User.findById(data._id);
+                        let friend=await User.findById(data.friendId);
+                        if(user && friend){
+                            let conversation=await Conversation.create({
+                                personOne:data._id,
+                                personTwo:data.friendId
+                            });
+                            if(conversation){
+                                user.conversations.push(conversation._id);
+                                friend.conversations.push(conversation._id);
+                                user.save().then(()=>{
+                                    friend.save().then(()=>{
+                                        // new-conversation
+                                        if(mapUserIdToSocketId[data.friendId] && connectedClients[mapUserIdToSocketId[data.friendId]]){
+                                            connectedClients[mapUserIdToSocketId[data.friendId]].emit('new-conversation',{
+                                                userId:data._id,
+                                                userName:user.name,
+                                                userPic:user.pic
+                                            });
+                                        }
+                                        cb({
+                                            success:true
+                                        });
+                                    }).catch((err:Error)=>{
+                                        cb({
+                                            success:false,
+                                            error:"SERVER ERROR"
+                                        });   
+                                        Conversation.findByIdAndDelete(conversation._id)
+                                        .then(()=>{}).catch(()=>{});
+                                        user.conversations=user.conversations.filter((con:string)=>{
+                                            return con.toString()!=conversation._id.toString();
+                                        });
+                                        user.save().then(()=>{}).catch(()=>{});
+                                    });
+                                }).catch((err:Error)=>{
+                                    cb({
+                                        success:false,
+                                        error:"SERVER ERROR"
+                                    });    
+                                });
+                            }else{
+                                cb({
+                                    success:false,
+                                    error:"SERVER ERROR"
+                                });
+                            }
+                        }else{
+                            cb({
+                                success:false,
+                                error:"INVALID IDS"
+                            });
+                        }
+                    }catch(e){
+                        cb({
+                            success:false,
+                            error:"SERVER ERROR"
+                        });
+                    }
+                    
+                    // new-conversation to friendId
+                    // send a response reply to _id
+        
+                    /*
+                        // server-side
+                        io.on("connection", (socket) => {
+                        socket.on("update item", (arg1, arg2, callback) => {
+                            console.log(arg1); // 1
+                            console.log(arg2); // { name: "updated" }
+                            callback({
+                            status: "ok"
+                            });
+                        });
+                        });
+        
+                        // client-side
+                        socket.emit("update item", "1", { name: "updated" }, (response) => {
+                        console.log(response.status); // ok
+                        });
+                    */
+        
+                },(errorMessage:string)=>{
+                    cb({
+                        success:false,
+                        error:errorMessage
+                    });   
                 });
-                });
-
-                // client-side
-                socket.emit("update item", "1", { name: "updated" }, (response) => {
-                console.log(response.status); // ok
-                });
-            */
-
         });
 
         // Get recent chats
@@ -247,76 +274,151 @@ let _=(io:socket.Server<any,any,any,any>)=>{
             type:"CONVERSATION" | "GROUP",
             _id:string,
             conversationId?:string,
-            groupId?:string
+            groupId?:string,
+            token?:string
         },cb:(args:any)=>{})=>{
-            try{
-                let chattingKeeper=(data.type==='GROUP')?(
-                    await Group.findById(data.groupId)
-                    .slice('messages',-60)
-                    .populate('messages')
-                ):(
-                    await Conversation.findById(data.conversationId)
-                    .slice('messages',-60)
-                    .populate('messages')
-                );
-                if(chattingKeeper){
-                    let check=false;
-                    if(data.type==='GROUP'){
-                        let checkPresent=chattingKeeper.users.find((id:string)=>{
-                            return id.toString()==data._id;
-                        });
-                        if(checkPresent) check=true;
-                    }else{
-                        if(chattingKeeper.personOne.toString()==data._id) check=true;
-                        if(chattingKeeper.personTwo.toString()==data._id) check=true;
-                    }
-                    if(check){
-
-                        if(data.type==='GROUP'){
-                            groupIdToNameMap[data.groupId!]=chattingKeeper.name;
-                            socket.join(chattingKeeper.name);
+            if(data?.token)
+                jwtVerify(data.token,async ()=>{
+                    try{
+                        let chattingKeeper=(data.type==='GROUP')?(
+                            await Group.findById(data.groupId)
+                            .slice('messages',-60)
+                            .populate('messages')
+                        ):(
+                            await Conversation.findById(data.conversationId)
+                            .slice('messages',-60)
+                            .populate('messages')
+                        );
+                        if(chattingKeeper){
+                            let check=false;
+                            if(data.type==='GROUP'){
+                                let checkPresent=chattingKeeper.users.find((id:string)=>{
+                                    return id.toString()==data._id;
+                                });
+                                if(checkPresent) check=true;
+                            }else{
+                                if(chattingKeeper.personOne.toString()==data._id) check=true;
+                                if(chattingKeeper.personTwo.toString()==data._id) check=true;
+                            }
+                            if(check){
+        
+                                if(data.type==='GROUP'){
+                                    groupIdToNameMap[data.groupId!]=chattingKeeper.name;
+                                    socket.join(chattingKeeper.name);
+                                }
+        
+                                cb({
+                                    success:true,
+                                    data:chattingKeeper.messages
+                                });
+                            }else{
+                                cb({
+                                    success:false,
+                                    error:"NOT AVALILABLE FOR YOU"
+                                });
+                            }
+                        }else{
+                            cb({
+                                success:false,
+                                error:"INVALID ID"
+                            });
                         }
-
-                        cb({
-                            success:true,
-                            data:chattingKeeper.messages
-                        });
-                    }else{
+                    }catch(e){
                         cb({
                             success:false,
-                            error:"NOT AVALILABLE FOR YOU"
+                            error:"SERVER ERROR"
                         });
                     }
-                }else{
+                },(errorMessage:string)=>{
                     cb({
                         success:false,
-                        error:"INVALID ID"
-                    });
-                }
-            }catch(e){
-                cb({
-                    success:false,
-                    error:"SERVER ERROR"
+                        error:errorMessage
+                    });   
                 });
-            }
+            
         });
 
         // Send a message
-        socket.on('send-message',(data:{
+        socket.on('send-message',async (data:{
             type:"CONVERSATION" | "GROUP",
             _id:string,
+            name:string,
+            pic:string
             // Message Contents
             message:string,
             pics:string[],
             attachments:string[],
             // Optinal Values depends on type
             friendId?:string,
-            groupId?:string
+            groupId?:string,
+            conversationId?:string,
+            token?:string
         })=>{
-
-            // add the message to its corresponding container
-            // send it to others not the socket
-            
+            if(data?.token)
+                jwtVerify(data.token,async ()=>{
+                    // add the message to its corresponding container
+                    // send it to others not the socket
+                    try{
+                        let chattingKeeper=(data.type==='GROUP')?(
+                            await Group.findById(data.groupId)
+                        ):(
+                            await Conversation.findById(data.conversationId)
+                        );
+                        if(chattingKeeper){
+                            let attachments:string[]=[];
+                            if(data.pics.length>0){
+                                attachments=[...data.pics];
+                            }
+                            if(data.attachments.length>0){
+                                attachments=[
+                                    ...attachments,
+                                    ...data.attachments
+                                ];
+                            }
+                            let message=await Message.create({
+                                sender:data._id,
+                                message:data.message,
+                                attachments:attachments
+                            });
+                            if(message){
+                                chattingKeeper.messages.push(message._id);
+                                chattingKeeper.save().then(()=>{
+                                    message.sender={
+                                        _id:data._id,
+                                        name:data.name,
+                                        pic:data.pic
+                                    };
+                                    if(data.type==='GROUP'){
+                                        if(groupIdToNameMap[data.groupId!])
+                                            io.in(groupIdToNameMap[data.groupId!])
+                                            .emit('message-received',{
+                                                type:"GROUP",
+                                                data:message,
+                                                typeId:data.groupId!
+                                            });
+                                            // remember typeId is of groupId or conversationId
+                                    }else{
+                                        if(data?.friendId && mapUserIdToSocketId[data.friendId] && connectedClients[mapUserIdToSocketId[data.friendId]]){
+                                            connectedClients[mapUserIdToSocketId[data.friendId]].emit('message-received',{
+                                                type:"CONVERSATION",
+                                                data:message,
+                                                typeId:data.conversationId!
+                                            });
+                                        }
+                                    }
+                                }).catch((e:Error)=>{
+                                    console.log(e);
+                                    Message.findByIdAndDelete(message._id)
+                                    .then(()=>{}).catch(()=>{});
+                                });
+                            }
+                        }
+                    }catch(e){
+                        console.log(e);
+                    }
+                },(errorMessage:string)=>{
+                    console.log(errorMessage);
+                });
 
         });
 
@@ -327,25 +429,32 @@ let _=(io:socket.Server<any,any,any,any>)=>{
             type:"CONVERSATION" | "GROUP",
             // Optinal Values depends on type
             friendId?:string,
-            groupId?:string
+            groupId?:string,
+            token?:string
         })=>{
-            if(data.type==='GROUP'){
-                if(data?.groupId && groupIdToNameMap[data.groupId]){
-                    socket.to(groupIdToNameMap[data.groupId]).emit('someone-typing',{
-                        type:"GROUP",
-                        name:data.name,
-                        typeId:data.groupId
-                    });
-                }
-            }else{
-                if(data?.friendId && mapUserIdToSocketId[data.friendId] && connectedClients[mapUserIdToSocketId[data.friendId]]){
-                    connectedClients[mapUserIdToSocketId[data.friendId]].emit('someone-typing',{
-                        type:"CONVERSATION",
-                        name:data.name,
-                        typeId:data.friendId
-                    });
-                }
-            }
+            if(data?.token)
+                jwtVerify(data.token,async ()=>{
+                    if(data.type==='GROUP'){
+                        if(data?.groupId && groupIdToNameMap[data.groupId]){
+                            socket.to(groupIdToNameMap[data.groupId]).emit('someone-typing',{
+                                type:"GROUP",
+                                name:data.name,
+                                typeId:data.groupId
+                            });
+                        }
+                    }else{
+                        if(data?.friendId && mapUserIdToSocketId[data.friendId] && connectedClients[mapUserIdToSocketId[data.friendId]]){
+                            connectedClients[mapUserIdToSocketId[data.friendId]].emit('someone-typing',{
+                                type:"CONVERSATION",
+                                name:data.name,
+                                typeId:data.friendId
+                            });
+                        }
+                    }
+                },(errorMessage:string)=>{
+                    console.log(errorMessage);
+                });
+            
         });
 
         // ADD ONS LATER****

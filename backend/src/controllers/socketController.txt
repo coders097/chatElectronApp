@@ -13,3 +13,4 @@
 1. new-conversation
 2. connected-client
 3. someone-typing
+4. message-received
