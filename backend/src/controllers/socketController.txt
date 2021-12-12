@@ -1,0 +1,15 @@
+// LIST OF EVENTS THE CLIENT WILL SEND TO SERVER
+1. link-id
+2. create-group
+3. join-group
+4. create-conversion
+5. send-message
+6. typing
+7. recent-chats
+
+
+
+// LIST OF EVENTS THE SERVER WILL SEND TO CLIENT
+1. new-conversation
+2. connected-client
+3. someone-typing

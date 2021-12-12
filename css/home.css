@@ -96,6 +96,8 @@ body {
           height: 100%;
           border-right: solid 1.4px #e6e6e6;
           display: flex;
+          cursor: default;
+          user-select: none;
           flex-direction: column; }
           body .right-part #conversations_and_groups main .aside .item {
             width: 100%;
@@ -144,39 +146,51 @@ body {
             gap: 10px;
             flex-direction: column;
             padding: 15px; }
-            body .right-part #conversations_and_groups main .display .messages .message .title {
-              display: flex;
-              gap: 10px;
-              margin-bottom: 6px;
-              align-items: center; }
-              body .right-part #conversations_and_groups main .display .messages .message .title img {
-                height: 30px;
-                width: 30px;
-                border-radius: 50%; }
-              body .right-part #conversations_and_groups main .display .messages .message .title h2 {
-                font-size: 1.1rem;
-                color: #2b2929; }
-              body .right-part #conversations_and_groups main .display .messages .message .title h4 {
-                font-size: 1.1rem;
-                color: #afafaf; }
-            body .right-part #conversations_and_groups main .display .messages .message .details {
-              width: 70%;
-              font-size: 1.2rem;
-              padding: 20px;
-              margin-bottom: 10px;
-              background: orange;
-              border-radius: 10px; }
-            body .right-part #conversations_and_groups main .display .messages .message .extra {
-              display: flex;
-              gap: 10px; }
-              body .right-part #conversations_and_groups main .display .messages .message .extra img {
-                width: 65px;
-                height: 65px;
-                border-radius: 10px;
-                object-fit: cover;
-                transition: all ease-in-out 0.2s; }
-                body .right-part #conversations_and_groups main .display .messages .message .extra img:hover {
-                  transform: scale(1.1); }
+            body .right-part #conversations_and_groups main .display .messages::-webkit-scrollbar {
+              width: 14px;
+              background: lightgray; }
+            body .right-part #conversations_and_groups main .display .messages::-webkit-scrollbar-thumb {
+              background: #747474; }
+            body .right-part #conversations_and_groups main .display .messages .message {
+              cursor: default;
+              user-select: none; }
+              body .right-part #conversations_and_groups main .display .messages .message .title {
+                display: flex;
+                gap: 10px;
+                margin-bottom: 6px;
+                align-items: center; }
+                body .right-part #conversations_and_groups main .display .messages .message .title img {
+                  height: 30px;
+                  width: 30px;
+                  border-radius: 50%; }
+                body .right-part #conversations_and_groups main .display .messages .message .title h2 {
+                  font-size: 1.1rem;
+                  color: #2b2929; }
+                body .right-part #conversations_and_groups main .display .messages .message .title h4 {
+                  font-size: 1.1rem;
+                  color: #afafaf; }
+              body .right-part #conversations_and_groups main .display .messages .message .details {
+                width: 70%;
+                font-size: 1.2rem;
+                padding: 20px;
+                margin-bottom: 10px;
+                background: orange;
+                border-radius: 10px; }
+              body .right-part #conversations_and_groups main .display .messages .message .extra {
+                display: flex;
+                gap: 10px; }
+                body .right-part #conversations_and_groups main .display .messages .message .extra img {
+                  width: 65px;
+                  height: 65px;
+                  border-radius: 10px;
+                  object-fit: cover;
+                  transition: all ease-in-out 0.2s; }
+                  body .right-part #conversations_and_groups main .display .messages .message .extra img:hover {
+                    transform: scale(1.06); }
+                body .right-part #conversations_and_groups main .display .messages .message .extra .attachement {
+                  padding: 18px;
+                  border-radius: 8px;
+                  border: solid 1.4px #e4e4e4; }
             body .right-part #conversations_and_groups main .display .messages .left .details {
               border-top-left-radius: 0px;
               color: white; }
@@ -222,3 +236,23 @@ body {
                 padding: 0px 15px; }
                 body .right-part #conversations_and_groups main .display .control-bar .input-control .controls img {
                   height: 30px; }
+            body .right-part #conversations_and_groups main .display .control-bar .extra {
+              cursor: default;
+              width: 100%;
+              display: flex;
+              gap: 10px; }
+              body .right-part #conversations_and_groups main .display .control-bar .extra .added-item {
+                padding: 8px 12px;
+                border: solid rgba(0, 0, 0, 0.233) 1.5px;
+                border-radius: 8px;
+                display: flex;
+                gap: 8px;
+                align-items: center; }
+                body .right-part #conversations_and_groups main .display .control-bar .extra .added-item img {
+                  width: 20px;
+                  height: 20px; }
+                  body .right-part #conversations_and_groups main .display .control-bar .extra .added-item img:last-of-type {
+                    cursor: pointer; }
+                body .right-part #conversations_and_groups main .display .control-bar .extra .added-item p {
+                  font-size: 1rem;
+                  color: #585858; }

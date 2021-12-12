@@ -138,6 +138,8 @@ body{
                     height: 100%;
                     border-right: solid 1.4px rgb(230, 230, 230);
                     display: flex;
+                    cursor: default;
+                    user-select: none;
                     flex-direction: column;
 
                     .item{
@@ -206,7 +208,19 @@ body{
                         flex-direction: column;
                         padding: 15px;
 
+                        &::-webkit-scrollbar{
+                            width: 14px;
+                            background: rgb(211, 211, 211);
+                        }
+
+                        &::-webkit-scrollbar-thumb{
+                            background: rgb(116, 116, 116);
+                        }
+
                         .message{
+                            cursor: default;
+                            user-select: none;
+                            
                             .title{
                                 display: flex;
                                 gap: 10px;
@@ -249,8 +263,14 @@ body{
                                     transition: all ease-in-out 0.2s;
 
                                     &:hover{
-                                        transform: scale(1.1);
+                                        transform: scale(1.06);
                                     }
+                                }
+
+                                .attachement{
+                                    padding: 18px;
+                                    border-radius: 8px;
+                                    border: solid 1.4px rgb(228, 228, 228);
                                 }
                             }
                         }
@@ -322,6 +342,36 @@ body{
 
                                 img{
                                     height: 30px;
+                                }
+                            }
+                        }
+
+                        .extra{
+                            cursor: default;
+                            width: 100%;
+                            display: flex;
+                            gap: 10px;
+
+                            .added-item{
+                                padding: 8px 12px;
+                                border: solid rgba(0, 0, 0, 0.233) 1.5px;
+                                border-radius: 8px;
+                                display: flex;
+                                gap: 8px;
+                                align-items: center;
+
+                                img{
+                                    width: 20px;
+                                    height: 20px;
+
+                                    &:last-of-type{
+                                        cursor: pointer;
+                                    }
+                                }
+
+                                p{
+                                    font-size: 1rem;
+                                    color: rgb(88, 88, 88);
                                 }
                             }
                         }
