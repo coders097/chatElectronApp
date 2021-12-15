@@ -21,4 +21,5 @@ router.post("/checkValidity", jwtAuthentication_1.default, (req, res) => {
 });
 router.post("/editProfile", upload.any(), auth_1.default.editProfile);
 router.delete("/deleteProfile", jwtAuthentication_1.default, auth_1.default.deleteProfile);
+router.post("/refreshToken", jwtAuthentication_1.default, auth_1.default.refreshToken);
 exports.default = router;

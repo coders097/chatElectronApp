@@ -22,7 +22,7 @@ function jwtCheckToken(req:express.Request,res:express.Response,next:express.Nex
             //********************************** */ 
             next();
         }catch(e){
-            console.log("EXPIRED TOKEN");
+            console.log("EXPIRED TOKEN",header);
             res.status(401).send({
                 success:false,
                 error:'Invalid or expired Token!'

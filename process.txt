@@ -1,0 +1,55 @@
++-------------------------------------------------------------------------------------+
+******************GLOBAL FUNCTIONS**************************
+
+refreshToken();
+logout();
+loadHomePage();
+loadAuthPage();
+loadAddOns();
+authenticate();
+
+******************HIGH LEVEL OVERVIEW*****
+
+// First when app opens
+//   -> if not authenticated , authenticate and save user details in localstorage
+//         -> open main app  (ADD ONS WILL OPEN IN DIFFERENT WINDOWS)
+//     
+//     
+//   -> if present in localstorage load it from there
+//         -> refresh it if required
+
+*****************BASIC FUNCTIONS****************
+
+signup();
+signin();
+
+
++--------------------------------------------------------------------------------------+
+
+******************HIGH LEVEL OVERVIEW*****
+
+// ******Main App Process****************
+// -> open socket connection
+// -> load chat lists
+// -> load aside button clicks new windows appears on button clicks
+// -> when you get 'INVALID TOKEN IN AUTHENTICATION' REFRESH TOKEN GLOBALLY
+// -> Provide Functionality To Logout and Update Profile
+// -> Handle Add ons clicks in separate windows
+// -> Socket management in a separate class
+// -> Render Methods
+
+*****************BASIC FUNCTIONS****************
+
+openSocketCommunication();
+handleAsideMenus();
+Render Class
+    -> render aside Menu
+    -> render display
+load chatlists();
+take userInput();
+Socket Class
+    -> load chat data
+    -> load conversations
+
+
+// Add ONS PROCESS

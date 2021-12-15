@@ -36,6 +36,130 @@ let _=(io:socket.Server<any,any,any,any>)=>{
             mapUserIdToSocketId[_id]=socket.id;
         });
 
+        // getAllGroupsInfo
+        socket.on('get-all-groups-info',async (data:{
+            _id:string,
+            token?:string
+        },cb:(args:any)=>{})=>{
+            if(data?.token){
+                jwtVerify(data.token,async ()=>{
+                    try{
+                        let user=await User.findById(data._id).populate({
+                            path:"groups",
+                            select:"name pic _id"
+                        });
+                        if(user){
+                            cb({
+                                success:true,
+                                data:user.groups
+                            });
+                        }else{
+                            cb({
+                                success:false,
+                                error:"INVALID ID"
+                            });    
+                        }
+                    }catch(e){
+                        cb({
+                            success:false,
+                            error:"INVALID ID"
+                        });
+                    }
+                },(errorMessage:string)=>{
+                    cb({
+                        success:false,
+                        error:errorMessage
+                    });    
+                });
+            }
+        });
+
+        // getAllConversationsInfo
+        socket.on('get-all-conversations-info',async (data:{
+            _id:string,
+            token?:string
+        },cb:(args:any)=>{})=>{
+            if(data?.token){
+                jwtVerify(data.token,async ()=>{
+                    try{
+                        let user=await User.findById(data._id).populate({
+                            path:"conversations",
+                            populate:{
+                                path:"personOne personTwo"
+                            }
+                        });
+                        // userId:data._id,
+                        // userName:user.name,
+                        // userPic:user.pic,
+                        // conversationId:conversation._id
+                        if(user){
+                            let conversationsList:{
+                                userId:string,
+                                userName:string,
+                                userPic:string,
+                                conversationId:string
+                            }[]=[];
+                            user.conversations.forEach((conversation:{
+                                personOne:{
+                                    name:string,
+                                    _id:string,
+                                    pic:string
+                                },
+                                personTwo:{
+                                    name:string,
+                                    _id:string,
+                                    pic:string
+                                },
+                                _id:string
+                            })=>{
+                                let _tempData:{
+                                    userId:string,
+                                    userName:string,
+                                    userPic:string,
+                                    conversationId:string
+                                }={
+                                    userId:"",
+                                    userName:"",
+                                    userPic:"",
+                                    conversationId:""
+                                };
+                                _tempData.conversationId=conversation._id;
+                                if(conversation.personOne._id===data._id){
+                                    _tempData.userId=conversation.personTwo._id;
+                                    _tempData.userName=conversation.personTwo.name;
+                                    _tempData.userPic=conversation.personTwo.pic;
+                                }else{
+                                    _tempData.userId=conversation.personOne._id;
+                                    _tempData.userName=conversation.personOne.name;
+                                    _tempData.userPic=conversation.personOne.pic;
+                                }
+                                conversationsList.push(_tempData);
+                            });
+                            cb({
+                                success:true,
+                                data:conversationsList
+                            })
+                        }else{
+                            cb({
+                                success:false,
+                                error:"INVALID ID"
+                            });    
+                        }
+                    }catch(e){
+                        cb({
+                            success:false,
+                            error:"INVALID ID"
+                        });
+                    }
+                },(errorMessage:string)=>{
+                    cb({
+                        success:false,
+                        error:errorMessage
+                    });    
+                });
+            }
+        });
+
         // Create a group
         socket.on('create-group',async (data:{
             _id:string,
@@ -68,7 +192,7 @@ let _=(io:socket.Server<any,any,any,any>)=>{
                                         _id:group._id
                                     }
                                 }); 
-                            }).catch((err:Error)=>{
+                            }).catch((err:Error)=>{ 
                                 cb({
                                     success:false,
                                     error:"SERVER ERROR"
@@ -111,7 +235,13 @@ let _=(io:socket.Server<any,any,any,any>)=>{
                         let user=await User.findById(data._id);
                         let group=await Group.findById(data.groupId)
                         .slice('messages',-60)
-                        .populate('messages');
+                        .populate({
+                            path: 'messages',
+                            populate: {
+                                path: 'sender',
+                                select:"_id name pic"
+                            }
+                        });
                         if(user && group){
                             let index=(group.users as string[]).find((id:string)=>{
                                 return id.toString()==data._id;
@@ -197,11 +327,15 @@ let _=(io:socket.Server<any,any,any,any>)=>{
                                             connectedClients[mapUserIdToSocketId[data.friendId]].emit('new-conversation',{
                                                 userId:data._id,
                                                 userName:user.name,
-                                                userPic:user.pic
+                                                userPic:user.pic,
+                                                conversationId:conversation._id
                                             });
                                         }
                                         cb({
-                                            success:true
+                                            success:true,
+                                            data:{
+                                                conversationId:conversation._id
+                                            }
                                         });
                                     }).catch((err:Error)=>{
                                         cb({
@@ -283,11 +417,23 @@ let _=(io:socket.Server<any,any,any,any>)=>{
                         let chattingKeeper=(data.type==='GROUP')?(
                             await Group.findById(data.groupId)
                             .slice('messages',-60)
-                            .populate('messages')
+                            .populate({
+                                path: 'messages',
+                                populate: {
+                                    path: 'sender',
+                                    select:"_id name pic"
+                                }
+                            })
                         ):(
                             await Conversation.findById(data.conversationId)
                             .slice('messages',-60)
-                            .populate('messages')
+                            .populate({
+                                path: 'messages',
+                                populate: {
+                                    path: 'sender',
+                                    select:"_id name pic"
+                                }
+                            })
                         );
                         if(chattingKeeper){
                             let check=false;

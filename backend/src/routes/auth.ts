@@ -22,7 +22,7 @@ router.post("/login",controller.login);
 // @type  POST
 // @route /auth/signup
 // @desc  for registering user
-// @access PUBLIC
+// @access PUBLIC 
 router.post("/signup", upload.any(),controller.signup);
 
 
@@ -49,6 +49,12 @@ router.post("/editProfile",upload.any(),controller.editProfile);
 // @desc  for deleting user's profile
 // @access PRIVATE
 router.delete("/deleteProfile",jwt,controller.deleteProfile);
+
+// @type  POST
+// @route /auth/refreshToken
+// @desc  for refreshing user token
+// @access PRIVATE
+router.post("/refreshToken",jwt,controller.refreshToken);
 
 
 export default router;

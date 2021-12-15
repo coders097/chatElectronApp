@@ -1,4 +1,7 @@
 {
+    let electron=require('electron');
+    // Import the ipcRenderer Module from Electron
+    const ipc = electron.ipcRenderer;
     let i=0;
     let pics=document.querySelectorAll('.display img');
     let controlBtns=document.querySelectorAll(".controls div");
@@ -12,6 +15,11 @@
     let userpicView=document.querySelector('#userpicView');
     let showAuthPics=false;
     let userPicInput=document.getElementById('userPicInput');
+    let signInBtn=document.getElementById('signInBtn');
+    let signUpBtn=document.getElementById('signUpBtn');
+    let userEmailInput:HTMLInputElement=document.getElementById('userEmailInput') as HTMLInputElement;
+    let userNameInput:HTMLInputElement=document.getElementById('userNameInput') as HTMLInputElement;
+    let userPasswordInput:HTMLInputElement=document.getElementById('userPasswordInput') as HTMLInputElement;
 
     authPics?.addEventListener('click',(e)=>{
         let target:any=e.target;
@@ -83,8 +91,56 @@
         (center?.children[5] as HTMLDivElement).style.display="none";
     });
 
-    loginBtn?.addEventListener('click',()=>{
+    signInBtn?.addEventListener('click',()=>{
+        // console.log(userEmailInput.value);
+        // console.log(userPasswordInput.value);
 
+        fetch("http://localhost:3001/auth/login",{
+            method:"POST",
+            headers:{
+                'Content-Type':'application/json'
+            },
+            body:JSON.stringify({
+                password:userPasswordInput.value, 
+                email:userEmailInput.value
+            })
+        }).then(res=>res.json())
+        .then(data=>{
+            if(data.success){
+                ipc.send("signInAuth",{
+                    ...data.data,
+                    loggedIn:true
+                });
+            }else{
+                alert(data.error);
+            }
+        }).catch(err=>alert(err));
+    });
+
+    signUpBtn?.addEventListener('click',()=>{
+        // name, email, password, pic
+        let formData=new FormData();
+        formData.append("name",userNameInput.value);
+        formData.append("email",userEmailInput.value);
+        formData.append("password",userPasswordInput.value);
+        if(userSelectedPicCheck){
+            formData.append('pic',(userPicInput as HTMLInputElement).files![0]);
+        }else{
+            formData.append("pic",selectedImg);
+        }
+
+        fetch("http://localhost:3001/auth/signup",{
+            method:"POST",
+            body:formData
+        }).then(res=>res.json())
+        .then(data=>{
+            if(data.success){
+                alert("Now SignIn");
+                loginBtn?.click();
+            }else{
+                alert(data.error);
+            }
+        }).catch(err=>alert(err));
     });
 
 }

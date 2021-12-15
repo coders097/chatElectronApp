@@ -5,12 +5,15 @@ import socket from 'socket.io';
 import http from 'http';
 import dotenv from 'dotenv';
 import socketController from './controllers/socketController';
+import mongoose from 'mongoose';
 
 let app=express();
 
 
 // MIDDLEWARES
 app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({extended:true}));
 app.use(moragn("dev"));
 dotenv.config({
     path:"config.env"
@@ -33,6 +36,14 @@ const io = new socket.Server(httpServer, {
     }
 });
 socketController(io);
+
+// MongoDB Connection
+mongoose.connect(process.env.MONGO_URL!);
+const db=mongoose.connection;
+db.on('error',()=>console.log("connection error"));
+db.once('open',async ()=>{
+    console.log("Connected To DB");
+});
 
 let PORT=process.env.PORT ? process.env.PORT : 3001;
 httpServer.listen(PORT,()=>{

@@ -7,17 +7,17 @@
     <title>ChatApp</title>
     <link rel="stylesheet" href="../css/home.css">
 </head>
-<body>
+<body> 
     <div class="left-part">
         <h4>MENU</h4>
-        <p class="active">Conversations<span>2</span></p>
-        <p>Groups</p>
+        <p class="active" id="conversationsMenuBtn">Conversations<span style="pointer-events: none;">2</span></p>
+        <p id="groupsMenuBtn">Groups<span style="pointer-events: none;">2</span></p>
         <h4>ADDONS</h4>
         <p>VideoChats</p>
 
-        <div class="user-logo" style="margin-top: auto;">
-            <img src="../assets/userPic.jpg" alt="userPic"/>
-            <div class="details">
+        <div class="user-logo" style="margin-top: auto;" id="userProfileMenuBtn">
+            <img src="../assets/userPic.jpg" alt="userPic" style="pointer-events: none;"/>
+            <div class="details" style="pointer-events: none;">
                 <h2>Mark Barker</h2>
                 <h3>Office Manager</h3>
             </div>
@@ -38,7 +38,15 @@
             </nav>
             <main>
                 <div class="aside">
-                    <div class="item">
+                    <!-- <div class="top-control">
+                        <img src="../assets/plus.png" alt="plus"/>
+                        <h2>New Group</h2>
+                    </div> -->
+                    <div class="default-words" id="aside-default-words-view">
+                        <img alt="search" src="../assets/search.png"/>
+                        <p>Search for your friends and family to create conversations.</p>
+                    </div>
+                    <!-- <div class="item">
                         <img src="../assets/userPic.jpg" alt="pic"/>
                         <div class="details">
                             <h2>Office Managers G</h2>
@@ -54,20 +62,11 @@
                             <h2>Office Managers G</h2>
                             <h4>05:52 AM</h4>
                             <p>
-                                We have lake-front vacation rentals.
+                                We have lake-front vacation rentals,lake-front vacation rentals,lake-front vacation rentals.
                             </p>
                         </div>
-                    </div>
-                    <div class="item">
-                        <img src="../assets/userPic.jpg" alt="pic"/>
-                        <div class="details">
-                            <h2>Office Managers G</h2>
-                            <h4>05:52 AM</h4>
-                            <p>
-                                We have lake-front vacation rentals.
-                            </p>
-                        </div>
-                    </div>
+                    </div> -->
+            
                 </div>
                 <div class="display">
                     <div class="floating-menu">
@@ -75,43 +74,10 @@
                         <img alt="bin-menu" src="../assets/bin.png"/>
                     </div>
                     <div class="messages">
-                        <div class="message left">
-                            <div class="title">
-                                <img alt="titlePic" src="../assets/userPic.jpg"/>
-                                <h2>Carolyn Chandler</h2>
-                                <h4>05:23 AM</h4>
-                            </div>
-                            <div class="details">
-                                Hey y'all!<br/>
-                                We own Hidden Lake Forest which is in a private lake community. We 
-                                anted to see how others handle a waiver of liabolity to use of Iayaks, boats, swuimming.
-                            </div>
+                        <div class="default-words" id="display-default-words-view">
+                            <p>Search for your friends and family to create conversations.</p>
                         </div>
-                        <div class="message left">
-                            <div class="title">
-                                <img alt="titlePic" src="../assets/userPic.jpg"/>
-                                <h2>Carolyn Chandler</h2>
-                                <h4>05:23 AM</h4>
-                            </div>
-                            <div class="details">
-                                Hey y'all!<br/>
-                                We own Hidden Lake Forest which is in a private lake community. We 
-                                anted to see how others handle a waiver of liabolity to use of Iayaks, boats, swuimming.
-                            </div>
-                        </div>
-                        <div class="message left">
-                            <div class="title">
-                                <img alt="titlePic" src="../assets/userPic.jpg"/>
-                                <h2>Carolyn Chandler</h2>
-                                <h4>05:23 AM</h4>
-                            </div>
-                            <div class="details">
-                                Hey y'all!<br/>
-                                We own Hidden Lake Forest which is in a private lake community. We 
-                                anted to see how others handle a waiver of liabolity to use of Iayaks, boats, swuimming.
-                            </div>
-                        </div>
-                        <div class="message left">
+                        <!-- <div class="message left">
                             <div class="title">
                                 <img alt="titlePic" src="../assets/userPic.jpg"/>
                                 <h2>Carolyn Chandler</h2>
@@ -141,7 +107,7 @@
                                 <img alt="pic2" src="../assets/authpic2.jpg"/>
                                 <img alt="attach" class="attachement" src="../assets/attached.png"/>
                             </div>
-                        </div>
+                        </div> -->
                     </div>
     
     
@@ -170,7 +136,35 @@
                 </div>
             </main>
         </div>
+        <div id="user_profile_view" style="display: none;">
+                <img alt="userpic" src="../assets/userPic.jpg" id="profilePicView"/>
+                <h2 class="profile-non-edit-mode-items" id="profileNameView">John Bando</h2>
+                <h3 class="profile-non-edit-mode-items" id="profileEmailView">jognnckn6cd2c@jccjn.com</h3>
+                <input type="file" style="display: none;" id="profilePicInput"/>
+                <div class="input-box profile-edit-mode-items flex-view" style="display: none;">
+                    <span>NAME :</span>
+                    <input type="text" value="NAME" id="profileNameInput"/>
+                </div>
+                <div class="input-box profile-edit-mode-items flex-view" style="display: none;">
+                    <span>EMAIL :</span>
+                    <input type="email" value="EMAIL" id="profileEmailInput"/>
+                </div>
+                <div class="input-box profile-edit-mode-items flex-view" style="display: none;">
+                    <span>PASSWORD :</span>
+                    <input type="password" value="PASSWORD" id="profilePasswordInput"/>
+                </div>
+                <div class="hori profileBtns">
+                    <button class="profile-edit-mode-items" style="display: none;" id="editProfileCancelBtn">CANCEL</button>
+                    <button class="black profile-edit-mode-items" style="display: none;" id="editProfileChangePicBtn">CHANGE PIC</button>
+                    <button class="profile-edit-mode-items" style="display: none;" id="editProfileSaveBtn">SAVE</button>
+                    <button class="profile-non-edit-mode-items" id="editProfileBtn">EDIT PROFILE</button>
+                    <button class="profile-non-edit-mode-items" id="editProfileDeleteBtn">DELETE PROFILE</button>
+                </div>
+                
+        </div>
     </div>
-    <script src="../dist/scripts/home.js" type="module"></script>
+    <script src="../dist/scripts/_homeProfileView.js"></script>
+    <script src="../dist/scripts/_conversationsAndGroupsView.js"></script>
+    <script src="../dist/scripts/home.js"></script>
 </body>
 </html>

@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "start tsc -w && start node-sass --watch scss -o css",
-    "startApp":"electron ."
+    "startApp": "electron ."
   },
   "author": "BMD",
   "license": "MIT",
@@ -14,6 +14,8 @@
     "electron": "^16.0.4"
   },
   "dependencies": {
+    "@electron/remote": "^2.0.1",
+    "electron-prompt": "^1.7.0",
     "node-sass": "^7.0.0",
     "typescript": "^4.5.2"
   }

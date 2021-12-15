@@ -110,15 +110,15 @@ let signup = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 let editProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     (0, jwtAuthentication_1.default)(req, res, () => {
         console.log("Verified!");
-        let { id, name, email, password } = req.body;
-        if (!password) {
+        let { id, name, email, password, oldPassword } = req.body;
+        if (!oldPassword) {
             errors_1.default.dataMissingError(res);
             return;
         }
         User_1.default.findById(id)
             .then((user) => __awaiter(void 0, void 0, void 0, function* () {
-            let __password = bcryptjs_1.default.hashSync(password, saltRounds);
-            if (__password === user.password) {
+            const comparePassword = bcryptjs_1.default.compareSync(oldPassword, user.password);
+            if (comparePassword === true) {
                 let oldPic = user.pic;
                 let newPic = oldPic;
                 if (req.files && req.files.length != 0) {
@@ -149,11 +149,12 @@ let editProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                         },
                     });
                     if (oldPic !== newPic) {
-                        if ((oldPic !== "avatar1.jpg") &&
-                            (oldPic !== "avatar2.jpg") &&
-                            (oldPic !== "avatar3.jpg") &&
-                            (oldPic !== "avatar4.jpg") &&
-                            (oldPic !== "avatar5.jpg")) {
+                        if ((oldPic !== "user0.png") &&
+                            (oldPic !== "user1.png") &&
+                            (oldPic !== "user2.png") &&
+                            (oldPic !== "user3.png") &&
+                            (oldPic !== "user4.png") &&
+                            (oldPic !== "user5.png")) {
                             try {
                                 fs_1.default.unlinkSync(path_1.default.join(__dirname, "../../storage/user/", oldPic));
                             }
@@ -167,6 +168,9 @@ let editProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                     errors_1.default.serverError(res);
                 });
             }
+            else {
+                errors_1.default.authenticationError(res);
+            }
         }))
             .catch((err) => {
             console.log(err);
@@ -178,19 +182,20 @@ let deleteProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     let { id, password } = req.body;
     let _user = yield User_1.default.findById(id);
     if (_user) {
-        const temp_password = bcryptjs_1.default.hashSync(password, saltRounds);
-        if (temp_password === _user.password) {
+        const comparePassword = bcryptjs_1.default.compareSync(password, _user.password);
+        if (comparePassword === true) {
             User_1.default.findByIdAndDelete(id)
                 .then((user) => __awaiter(void 0, void 0, void 0, function* () {
                 res.status(200).json({
                     success: true,
                 });
                 try {
-                    if ((user.pic !== "avatar1.jpg") &&
-                        (user.pic !== "avatar2.jpg") &&
-                        (user.pic !== "avatar3.jpg") &&
-                        (user.pic !== "avatar4.jpg") &&
-                        (user.pic !== "avatar5.jpg"))
+                    if ((user.pic !== "user0.png") &&
+                        (user.pic !== "user1.png") &&
+                        (user.pic !== "user2.png") &&
+                        (user.pic !== "user3.png") &&
+                        (user.pic !== "user4.png") &&
+                        (user.pic !== "user5.png"))
                         fs_1.default.unlinkSync(path_1.default.join(__dirname, "../../storage/user/", user.pic));
                 }
                 catch (E) {
@@ -203,6 +208,27 @@ let deleteProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         }
     }
 });
+let refreshToken = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    let { name, _id } = req.body;
+    let timeInMinutes = 120;
+    let expires = Math.floor(Date.now() / 1000) + 60 * timeInMinutes;
+    try {
+        let token = jsonwebtoken_1.default.sign({
+            name: name,
+            _id: _id,
+            exp: expires,
+        }, jwt_key);
+        res.status(200).json({
+            success: true,
+            data: {
+                token: token
+            }
+        });
+    }
+    catch (e) {
+        errors_1.default.serverError(res);
+    }
+});
 exports.default = {
-    login, signup, editProfile, deleteProfile
+    login, signup, editProfile, deleteProfile, refreshToken
 };

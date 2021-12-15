@@ -15,4 +15,5 @@ router.get("/getUserPic", fetch_1.default.getUserPic);
 router.get("/getPostPic", fetch_1.default.getPostPic);
 router.get("/getAttachment", fetch_1.default.getAttachment);
 router.post("/uploadAttachment", upload.any(), fetch_1.default.uploadAttachment);
+router.post("/uploadPic", upload.any(), fetch_1.default.uploadPic);
 exports.default = router;

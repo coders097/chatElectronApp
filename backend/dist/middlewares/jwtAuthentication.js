@@ -24,7 +24,7 @@ function jwtCheckToken(req, res, next) {
             next();
         }
         catch (e) {
-            console.log("EXPIRED TOKEN");
+            console.log("EXPIRED TOKEN", header);
             res.status(401).send({
                 success: false,
                 error: 'Invalid or expired Token!'

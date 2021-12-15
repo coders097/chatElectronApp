@@ -31,7 +31,13 @@ router.get("/getAttachment",controller.getAttachment);
 // @route /fetch/uploadAttachment
 // @desc  for uploading Attachment
 // @access PRIVATE
-router.post("/uploadAttachment",upload.any(),controller.uploadAttachment);
+router.post("/uploadAttachment",upload.any(),controller.uploadAttachment); 
+
+// @type  POST
+// @route /fetch/uploadPic
+// @desc  for uploading Post pic
+// @access PRIVATE
+router.post("/uploadPic",upload.any(),controller.uploadPic); 
 
 export default router;
  

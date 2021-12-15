@@ -103,16 +103,16 @@ let signup=async (req:express.Request,res:express.Response)=>{
 let editProfile=async (req:express.Request,res:express.Response)=>{
     jwtVerify(req, res, () => {
         console.log("Verified!");
-        let { id, name, email, password } = req.body;
-        if(!password){
+        let { id, name, email, password, oldPassword } = req.body;
+        if(!oldPassword){
             E.dataMissingError(res);
             return;
         }
         User.findById(id)
           .then(async (user) => {
             // Password check
-            let __password=bcrypt.hashSync(password, saltRounds);
-            if(__password===user.password){
+            const comparePassword = bcrypt.compareSync(oldPassword, user.password);
+            if(comparePassword===true){ 
                 let oldPic = user.pic;
                 let newPic = oldPic;
                 if (req.files && req.files.length != 0) {
@@ -147,11 +147,12 @@ let editProfile=async (req:express.Request,res:express.Response)=>{
                       },
                     });
                     if (oldPic !== newPic) {
-                      if ((oldPic !== "avatar1.jpg") &&
-                          (oldPic !== "avatar2.jpg") &&
-                          (oldPic !== "avatar3.jpg") &&
-                          (oldPic !== "avatar4.jpg") &&
-                          (oldPic !== "avatar5.jpg")) {
+                      if ((oldPic !== "user0.png") &&
+                          (oldPic !== "user1.png") &&
+                          (oldPic !== "user2.png") &&
+                          (oldPic !== "user3.png") &&
+                          (oldPic !== "user4.png") &&
+                          (oldPic !== "user5.png")) {
                         try {
                           fs.unlinkSync(path.join(__dirname, "../../storage/user/", oldPic));
                         //   await cloudStorage.file(oldPic).delete();
@@ -164,6 +165,8 @@ let editProfile=async (req:express.Request,res:express.Response)=>{
                   .catch(() => {
                     E.serverError(res);
                   });
+              }else{
+                E.authenticationError(res);
               }
           })
           .catch((err) => {
@@ -178,19 +181,20 @@ let deleteProfile=async (req:express.Request,res:express.Response)=>{
     // Password checking
     let _user=await User.findById(id);
     if(_user){
-        const temp_password = bcrypt.hashSync(password, saltRounds);
-        if(temp_password===_user.password){
+        const comparePassword = bcrypt.compareSync(password, _user.password);
+        if(comparePassword===true){
             User.findByIdAndDelete(id)
             .then(async (user) => {
               res.status(200).json({
                 success: true,
               });
               try {
-                if ((user.pic !== "avatar1.jpg") &&
-                    (user.pic !== "avatar2.jpg") &&
-                    (user.pic !== "avatar3.jpg") &&
-                    (user.pic !== "avatar4.jpg") &&
-                    (user.pic !== "avatar5.jpg"))
+                if ((user.pic !== "user0.png") &&
+                    (user.pic !== "user1.png") &&
+                    (user.pic !== "user2.png") &&
+                    (user.pic !== "user3.png") &&
+                    (user.pic !== "user4.png") &&
+                    (user.pic !== "user5.png"))
                   fs.unlinkSync(path.join(__dirname, "../../storage/user/", user.pic));
                 //   await cloudStorage.file(user.pic).delete();
               } catch (E) {
@@ -204,6 +208,30 @@ let deleteProfile=async (req:express.Request,res:express.Response)=>{
     } 
 }
 
+let refreshToken=async (req:express.Request,res:express.Response)=>{
+  let {name,_id}=req.body;
+  let timeInMinutes = 120;
+  let expires = Math.floor(Date.now() / 1000) + 60 * timeInMinutes;
+  try{
+    let token = jwt.sign(
+      {
+        name: name,
+        _id: _id,
+        exp: expires,
+      },
+      jwt_key 
+    );
+    res.status(200).json({
+      success:true,
+      data:{
+        token:token
+      }
+    });
+  }catch(e){
+    E.serverError(res);
+  }
+}
+
 export default {
-    login,signup,editProfile,deleteProfile
+    login,signup,editProfile,deleteProfile,refreshToken
 };

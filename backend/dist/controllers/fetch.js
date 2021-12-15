@@ -93,6 +93,29 @@ let uploadAttachment = (req, res) => __awaiter(void 0, void 0, void 0, function*
         }
     });
 });
+let uploadPic = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    (0, jwtAuthentication_1.default)(req, res, () => {
+        let { _id } = req.body;
+        if (req.files && req.files.length > 0) {
+            let names = [];
+            let size = req.files.length;
+            let i = 0;
+            while (size-- > 0) {
+                let file = req.files[i++];
+                let name = `${_id}_postpic_${Date.now()}_${file.fieldname}.${file.mimetype.split("/")[1]}`;
+                fs_1.default.writeFileSync(path_1.default.join(__dirname, "../../storage/post/", name), file.buffer);
+                names.push(name);
+            }
+            res.status(200).json({
+                success: true,
+                data: names
+            });
+        }
+        else {
+            errors_1.default.dataMissingError(res);
+        }
+    });
+});
 exports.default = {
-    getUserPic, getPostPic, getAttachment, uploadAttachment
+    getUserPic, getPostPic, getAttachment, uploadAttachment, uploadPic
 };

@@ -56,7 +56,7 @@ let getAttachment=async (req:express.Request,res:express.Response)=>{
             res.status(404).send();
         }
     });
-}
+} 
 
 let uploadAttachment=async (req:express.Request,res:express.Response)=>{
     jwtVerify(req,res,()=>{
@@ -84,6 +84,32 @@ let uploadAttachment=async (req:express.Request,res:express.Response)=>{
     });
 }
 
+let uploadPic=async (req:express.Request,res:express.Response)=>{
+    jwtVerify(req,res,()=>{
+        let {_id}=req.body;
+        if(req.files && req.files.length>0){
+            let names:string[]=[];
+            let size:number=(req.files as Express.Multer.File[]).length;
+            let i=0;
+            while(size-->0){
+                let file=(req.files as Express.Multer.File[])[i++];
+                let name=`${_id}_postpic_${Date.now()}_${file.fieldname}.${file.mimetype.split("/")[1]}`;
+                fs.writeFileSync(
+                    path.join(__dirname, "../../storage/post/",name),
+                    file.buffer
+                );
+                names.push(name);
+            }
+            res.status(200).json({
+                success:true,
+                data:names
+            });
+        }else{
+            E.dataMissingError(res);
+        }
+    });
+}
+
 export default {
-    getUserPic,getPostPic,getAttachment,uploadAttachment
+    getUserPic,getPostPic,getAttachment,uploadAttachment,uploadPic
 }; 
