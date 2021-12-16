@@ -28,7 +28,7 @@ router.get("/getPostPic",controller.getPostPic);
 router.get("/getAttachment",controller.getAttachment);
 
 // @type  POST
-// @route /fetch/uploadAttachment
+// @route /fetch/uploadAttachment 
 // @desc  for uploading Attachment
 // @access PRIVATE
 router.post("/uploadAttachment",upload.any(),controller.uploadAttachment); 

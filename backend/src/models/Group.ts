@@ -10,7 +10,7 @@ let groupSchema=new mongoose.Schema({
         ref:"user"
     }],
     pic:{
-        type:mongoose.Types.ObjectId,
+        type:String,
         required:true
     },
     messages:[{

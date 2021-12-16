@@ -14,7 +14,7 @@ let groupSchema = new mongoose_1.default.Schema({
             ref: "user"
         }],
     pic: {
-        type: mongoose_1.default.Types.ObjectId,
+        type: String,
         required: true
     },
     messages: [{

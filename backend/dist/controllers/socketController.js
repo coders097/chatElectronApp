@@ -24,6 +24,7 @@ let _ = (io) => {
     io.on("connection", (socket) => {
         console.log("Connected!");
         connectedClients[socket.id] = socket;
+        socket.emit("hello");
         socket.on("link-id", (_id) => {
             mapUserIdToSocketId[_id] = socket.id;
         });
@@ -145,6 +146,7 @@ let _ = (io) => {
                                     }
                                 });
                             }).catch((err) => {
+                                console.log(err);
                                 cb({
                                     success: false,
                                     error: "SERVER ERROR"
@@ -161,6 +163,7 @@ let _ = (io) => {
                         }
                     }
                     catch (e) {
+                        console.log(e);
                         cb({
                             success: false,
                             error: "SERVER ERROR"

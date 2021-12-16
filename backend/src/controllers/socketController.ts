@@ -30,6 +30,8 @@ let _=(io:socket.Server<any,any,any,any>)=>{
         
         // Now add the socket to its id in map
         connectedClients[socket.id]=socket;
+
+        socket.emit("hello");
         
         // Link its actual id to socket id
         socket.on("link-id",(_id:string)=>{
@@ -165,7 +167,7 @@ let _=(io:socket.Server<any,any,any,any>)=>{
             _id:string,
             pic:string,
             name:string,
-            token?:string
+            token?:string 
         },cb:(args:any)=>{})=>{
             if(data?.token)
                 jwtVerify(data.token,async ()=>{
@@ -193,7 +195,8 @@ let _=(io:socket.Server<any,any,any,any>)=>{
                                     }
                                 }); 
                             }).catch((err:Error)=>{ 
-                                cb({
+                                console.log(err);
+                                cb({    
                                     success:false,
                                     error:"SERVER ERROR"
                                 }); 
@@ -207,6 +210,7 @@ let _=(io:socket.Server<any,any,any,any>)=>{
                             });    
                         }
                     }catch(e){
+                        console.log(e);
                         cb({
                             success:false,
                             error:"SERVER ERROR"
@@ -563,7 +567,7 @@ let _=(io:socket.Server<any,any,any,any>)=>{
                         console.log(e);
                     }
                 },(errorMessage:string)=>{
-                    console.log(errorMessage);
+                    console.log(errorMessage); 
                 });
 
         });

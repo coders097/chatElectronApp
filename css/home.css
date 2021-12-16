@@ -41,6 +41,8 @@ body {
       body .left-part .user-logo img {
         width: 50px;
         height: 50px;
+        min-width: 50px;
+        min-height: 50px;
         border-radius: 50%;
         object-fit: cover; }
       body .left-part .user-logo .details h2 {
@@ -121,7 +123,9 @@ body {
             body .right-part #conversations_and_groups main .aside .top-control img {
               width: 25px;
               height: 25px;
-              object-fit: contain; }
+              min-width: 25px;
+              min-height: 25px;
+              object-fit: cover; }
             body .right-part #conversations_and_groups main .aside .top-control h2 {
               font-size: 1.5rem;
               text-transform: uppercase;
@@ -145,6 +149,7 @@ body {
               color: #afafaf; }
           body .right-part #conversations_and_groups main .aside .item {
             width: 100%;
+            transition: all ease-in-out 0.2s;
             padding: 15px;
             display: flex;
             gap: 15px;
@@ -154,6 +159,7 @@ body {
               border-radius: 50%;
               width: 50px;
               height: 50px;
+              min-width: 50px;
               object-fit: cover; }
             body .right-part #conversations_and_groups main .aside .item .details h2 {
               font-size: 1.3rem;
@@ -373,4 +379,71 @@ body {
           body .right-part #user_profile_view .hori button:last-of-type {
             background: linear-gradient(to right bottom, #ff3482, #ff541f); }
         body .right-part #user_profile_view .hori .black {
+          background: linear-gradient(to right bottom, #292b2c, #404344); }
+  body .modals {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.137);
+    backdrop-filter: blur(6px); }
+    body .modals .create-group-modal {
+      padding: 12px;
+      border-radius: 7px;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      align-items: center;
+      flex-direction: column;
+      gap: 8px;
+      background: white;
+      width: 400px; }
+      body .modals .create-group-modal h1 {
+        font-size: 1.7rem;
+        color: grey;
+        text-align: center; }
+      body .modals .create-group-modal > img {
+        width: 200px;
+        border-radius: 50%;
+        object-fit: cover;
+        height: 200px; }
+      body .modals .create-group-modal .input-box {
+        width: 100%;
+        padding: 5px;
+        border: solid rgba(0, 0, 0, 0.288) 1.5px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center; }
+        body .modals .create-group-modal .input-box span {
+          color: #7c7c7c;
+          font-size: 1.3rem;
+          user-select: none;
+          cursor: default;
+          padding: 5px 7px; }
+        body .modals .create-group-modal .input-box input {
+          outline: none;
+          border: none;
+          flex-grow: 1;
+          font-size: 1.6rem;
+          background: none; }
+      body .modals .create-group-modal .hori {
+        display: flex;
+        gap: 6px; }
+        body .modals .create-group-modal .hori button {
+          outline: none;
+          border: none;
+          padding: 13px 20px;
+          font-size: 1.1rem;
+          border-radius: 6px;
+          transition: all cubic-bezier(0, 1.02, 0.65, 1.02) 0.3s;
+          color: white;
+          background: linear-gradient(to right bottom, #227bff, #28a9ff); }
+          body .modals .create-group-modal .hori button:active {
+            transform: scale(0.9); }
+          body .modals .create-group-modal .hori button:last-of-type {
+            background: linear-gradient(to right bottom, #ff3482, #ff541f); }
+        body .modals .create-group-modal .hori .black {
           background: linear-gradient(to right bottom, #292b2c, #404344); }

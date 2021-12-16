@@ -54,6 +54,8 @@ body{
             img{
                 width:50px;
                 height: 50px;
+                min-width: 50px;
+                min-height: 50px;
                 border-radius: 50%;
                 object-fit: cover;
             }
@@ -169,7 +171,9 @@ body{
                         img{
                             width: 25px;
                             height: 25px;
-                            object-fit: contain;
+                            min-width: 25px;
+                            min-height: 25px;
+                            object-fit: cover;
                         }
 
                         h2{
@@ -205,6 +209,7 @@ body{
 
                     .item{
                         width: 100%;
+                        transition: all ease-in-out 0.2s;
                         padding: 15px;
                         display: flex;
                         gap: 15px;
@@ -215,6 +220,7 @@ body{
                             border-radius: 50%;
                             width: 50px;
                             height: 50px;
+                            min-width: 50px;
                             object-fit: cover;
                         }
 
@@ -542,6 +548,100 @@ body{
                     background: linear-gradient(to right bottom,rgb(41, 43, 44),rgb(64, 67, 68));
                 }
 
+            }
+        }
+    }
+
+    .modals{
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.137);
+        backdrop-filter: blur(6px);
+
+        .create-group-modal{
+            padding: 12px;
+            border-radius: 7px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%,-50%);
+            display: flex;
+            align-items: center;
+            flex-direction: column;
+            gap: 8px;
+            background: white;
+            width: 400px;
+
+            h1{
+                font-size: 1.7rem;
+                color: grey;
+                text-align: center;
+            }
+
+            &>img{
+                width: 200px;
+                border-radius: 50%;
+                object-fit: cover;
+                height: 200px;
+            }
+
+            .input-box{
+                width: 100%;
+                padding: 5px;
+                border: solid rgba(0, 0, 0, 0.288) 1.5px;
+                border-radius: 6px;
+                display: flex;
+                align-items: center;
+
+                span{
+                    color: rgb(124, 124, 124);
+                    font-size: 1.3rem;
+                    user-select: none;
+                    cursor: default;
+                    padding: 5px 7px;
+                }
+
+                input{
+                    outline: none;
+                    border: none;
+                    flex-grow: 1;
+                    font-size: 1.6rem;
+                    background: none;
+                }
+
+            }
+
+            .hori{
+                display: flex;
+                gap: 6px;
+
+                button{
+                    outline: none;
+                    border: none;
+                    padding: 13px 20px;
+                    font-size: 1.1rem;
+                    border-radius: 6px;
+                    transition: all cubic-bezier(0,1.02,.65,1.02) 0.3s;
+                    color: white;
+                    background: linear-gradient(to right bottom,rgb(34, 123, 255),rgb(40, 169, 255));
+                
+                    &:active{
+                        transform: scale(0.9);
+                    }
+
+                    &:last-of-type{
+                        background: linear-gradient(to right bottom,rgb(255, 52, 130),rgb(255, 84, 31));
+                    }
+
+                    
+                }
+
+                .black{
+                    background: linear-gradient(to right bottom,rgb(41, 43, 44),rgb(64, 67, 68));
+                }
             }
         }
     }
