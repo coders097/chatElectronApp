@@ -36,6 +36,7 @@ let _=(io:socket.Server<any,any,any,any>)=>{
         // Link its actual id to socket id
         socket.on("link-id",(_id:string)=>{
             mapUserIdToSocketId[_id]=socket.id;
+            console.log("LINK");
         });
 
         // getAllGroupsInfo
@@ -126,7 +127,7 @@ let _=(io:socket.Server<any,any,any,any>)=>{
                                     conversationId:""
                                 };
                                 _tempData.conversationId=conversation._id;
-                                if(conversation.personOne._id===data._id){
+                                if(conversation.personOne._id.toString()===data._id){
                                     _tempData.userId=conversation.personTwo._id;
                                     _tempData.userName=conversation.personTwo.name;
                                     _tempData.userPic=conversation.personTwo.pic;
@@ -407,6 +408,37 @@ let _=(io:socket.Server<any,any,any,any>)=>{
                 });
         });
 
+
+        socket.on('search-results',async (data:{
+            type:"CONVERSATION" | "GROUP",
+            keyword:string
+        },cb:(args:any)=>{})=>{
+            // "authors": { "$regex": "Alex", "$options": "i"
+            let query=data.type==="GROUP"?
+                Group.find({name:{ "$regex": data.keyword, "$options": "i"}}).select("name _id pic")
+                :User.find({name:{ "$regex": data.keyword, "$options": "i"}}).select("name pic email _id");
+            try{
+                let _data=await query.exec();
+                if(_data){
+                    cb({
+                        success:true,
+                        data:_data
+                    });
+                }else{
+                    cb({
+                        success:false,
+                        error:"SERVER PROBLEM!"
+                    });    
+                }
+            }catch(e){
+                cb({
+                    success:false,
+                    error:"SERVER PROBLEM!"
+                });
+            }
+
+        });
+
         // Get recent chats
         socket.on('recent-chats',async (data:{
             type:"CONVERSATION" | "GROUP",
@@ -534,7 +566,7 @@ let _=(io:socket.Server<any,any,any,any>)=>{
                                 chattingKeeper.messages.push(message._id);
                                 chattingKeeper.save().then(()=>{
                                     message.sender={
-                                        _id:data._id,
+                                        _id:data._id,  
                                         name:data.name,
                                         pic:data.pic
                                     };
@@ -543,18 +575,46 @@ let _=(io:socket.Server<any,any,any,any>)=>{
                                             io.in(groupIdToNameMap[data.groupId!])
                                             .emit('message-received',{
                                                 type:"GROUP",
-                                                data:message,
+                                                data:{
+                                                    ...message,
+                                                    sender:{
+                                                        _id:data._id,
+                                                        name:data.name,
+                                                        pic:data.pic
+                                                    }
+                                                },
                                                 typeId:data.groupId!
                                             });
                                             // remember typeId is of groupId or conversationId
                                     }else{
+                                        if(data.friendId)
+                                            console.log(data.friendId," ",connectedClients[mapUserIdToSocketId[data.friendId]]);
                                         if(data?.friendId && mapUserIdToSocketId[data.friendId] && connectedClients[mapUserIdToSocketId[data.friendId]]){
                                             connectedClients[mapUserIdToSocketId[data.friendId]].emit('message-received',{
                                                 type:"CONVERSATION",
-                                                data:message,
+                                                data:{
+                                                    ...message,
+                                                    sender:{
+                                                        _id:data._id,
+                                                        name:data.name,
+                                                        pic:data.pic
+                                                    }
+                                                },
                                                 typeId:data.conversationId!
                                             });
-                                        }
+                                        };
+                                        socket.emit('message-received',{
+                                            type:"CONVERSATION",
+                                            data:{
+                                                ...message,
+                                                sender:{
+                                                    _id:data._id,
+                                                    name:data.name,
+                                                    pic:data.pic
+                                                }
+                                            },
+                                            typeId:data.conversationId!
+                                        });
                                     }
                                 }).catch((e:Error)=>{
                                     console.log(e);

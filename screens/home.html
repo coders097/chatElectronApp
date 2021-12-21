@@ -10,8 +10,8 @@
 <body> 
     <div class="left-part">
         <h4>MENU</h4>
-        <p class="active" id="conversationsMenuBtn">Conversations<span style="pointer-events: none;">2</span></p>
-        <p id="groupsMenuBtn">Groups<span style="pointer-events: none;">2</span></p>
+        <p class="active" id="conversationsMenuBtn">Conversations<span style="pointer-events: none;display: none;">0</span></p>
+        <p id="groupsMenuBtn">Groups<span style="pointer-events: none;display: none;">0</span></p>
         <h4>ADDONS</h4>
         <p>VideoChats</p>
 
@@ -31,9 +31,9 @@
         <div id="conversations_and_groups">
             <nav>
                 <h1>Conversations</h1>
-                <div class="input-box" style="margin-left: auto;">
-                    <input type="text" placeholder="Search"/>
-                    <img alt="pic" src="../assets/search.png"/>
+                <div class="input-box" style="margin-left: auto;" id="search-modal-input-box">
+                    <input type="text" placeholder="Search" id="search-modal-input-box-input"/>
+                    <img alt="pic" src="../assets/search.png" id="search-modal-input-box-search-btn"/>
                 </div>
             </nav>
             <main>
@@ -70,7 +70,6 @@
                 </div>
                 <div class="display">
                     <div class="floating-menu">
-                        <img alt="video-menu" src="../assets/video.png"/>
                         <img alt="bin-menu" src="../assets/bin.png"/>
                     </div>
                     <div class="messages">
@@ -161,6 +160,7 @@
                     <button class="profile-edit-mode-items" style="display: none;" id="editProfileSaveBtn">SAVE</button>
                     <button class="profile-non-edit-mode-items" id="editProfileBtn">EDIT PROFILE</button>
                     <button class="profile-non-edit-mode-items" id="editProfileDeleteBtn">DELETE PROFILE</button>
+                    <button class="profile-non-edit-mode-items" id="logOutUserBtn">LOG OUT</button>
                 </div>
                 
         </div>
@@ -181,6 +181,26 @@
                 <button class="cancel-modal">CANCEL</button>
             </div>
         </div>
+
+    </div>
+    <div class="search-modal" id="search-modal" style="display: none;">
+        <p>No Results</p>
+        <!-- <div class="item">
+            <img src="../assets/userPic.jpg" alt="pic"/>
+            <div class="details">
+                <h2>Office Managers G</h2>
+                <h4>05:52 AM</h4>
+            </div>
+            <img style="margin-left: auto;" src="../assets/addUser.png" alt="addUser">
+        </div>
+        <div class="item">
+            <img src="../assets/userPic.jpg" alt="pic"/>
+            <div class="details">
+                <h2>Office Managers G</h2>
+                <h4>05:52 AM</h4>
+            </div>
+            <img style="margin-left: auto;" src="../assets/addGroup.png" alt="addGroup">
+        </div> -->
     </div>
 
 

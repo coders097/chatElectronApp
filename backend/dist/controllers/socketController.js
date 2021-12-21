@@ -27,6 +27,7 @@ let _ = (io) => {
         socket.emit("hello");
         socket.on("link-id", (_id) => {
             mapUserIdToSocketId[_id] = socket.id;
+            console.log("LINK");
         });
         socket.on('get-all-groups-info', (data, cb) => __awaiter(void 0, void 0, void 0, function* () {
             if (data === null || data === void 0 ? void 0 : data.token) {
@@ -83,7 +84,7 @@ let _ = (io) => {
                                     conversationId: ""
                                 };
                                 _tempData.conversationId = conversation._id;
-                                if (conversation.personOne._id === data._id) {
+                                if (conversation.personOne._id.toString() === data._id) {
                                     _tempData.userId = conversation.personTwo._id;
                                     _tempData.userName = conversation.personTwo.name;
                                     _tempData.userPic = conversation.personTwo.pic;
@@ -325,6 +326,32 @@ let _ = (io) => {
                     });
                 });
         }));
+        socket.on('search-results', (data, cb) => __awaiter(void 0, void 0, void 0, function* () {
+            let query = data.type === "GROUP" ?
+                Group_1.default.find({ name: { "$regex": data.keyword, "$options": "i" } }).select("name _id pic")
+                : User_1.default.find({ name: { "$regex": data.keyword, "$options": "i" } }).select("name pic email _id");
+            try {
+                let _data = yield query.exec();
+                if (_data) {
+                    cb({
+                        success: true,
+                        data: _data
+                    });
+                }
+                else {
+                    cb({
+                        success: false,
+                        error: "SERVER PROBLEM!"
+                    });
+                }
+            }
+            catch (e) {
+                cb({
+                    success: false,
+                    error: "SERVER PROBLEM!"
+                });
+            }
+        }));
         socket.on('recent-chats', (data, cb) => __awaiter(void 0, void 0, void 0, function* () {
             if (data === null || data === void 0 ? void 0 : data.token)
                 (0, socketJwtVerify_1.default)(data.token, () => __awaiter(void 0, void 0, void 0, function* () {
@@ -432,18 +459,38 @@ let _ = (io) => {
                                             io.in(groupIdToNameMap[data.groupId])
                                                 .emit('message-received', {
                                                 type: "GROUP",
-                                                data: message,
+                                                data: Object.assign(Object.assign({}, message), { sender: {
+                                                        _id: data._id,
+                                                        name: data.name,
+                                                        pic: data.pic
+                                                    } }),
                                                 typeId: data.groupId
                                             });
                                     }
                                     else {
+                                        if (data.friendId)
+                                            console.log(data.friendId, " ", connectedClients[mapUserIdToSocketId[data.friendId]]);
                                         if ((data === null || data === void 0 ? void 0 : data.friendId) && mapUserIdToSocketId[data.friendId] && connectedClients[mapUserIdToSocketId[data.friendId]]) {
                                             connectedClients[mapUserIdToSocketId[data.friendId]].emit('message-received', {
                                                 type: "CONVERSATION",
-                                                data: message,
+                                                data: Object.assign(Object.assign({}, message), { sender: {
+                                                        _id: data._id,
+                                                        name: data.name,
+                                                        pic: data.pic
+                                                    } }),
                                                 typeId: data.conversationId
                                             });
                                         }
+                                        ;
+                                        socket.emit('message-received', {
+                                            type: "CONVERSATION",
+                                            data: Object.assign(Object.assign({}, message), { sender: {
+                                                    _id: data._id,
+                                                    name: data.name,
+                                                    pic: data.pic
+                                                } }),
+                                            typeId: data.conversationId
+                                        });
                                     }
                                 }).catch((e) => {
                                     console.log(e);

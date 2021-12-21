@@ -63,6 +63,15 @@ interface Message{
     let messagesControlInputBox:HTMLDivElement=document.querySelector("main .control-bar") as HTMLDivElement;
     let searchNav=document.querySelector('nav');
 
+    let conversationsMenuBtn=document.getElementById('conversationsMenuBtn');
+    let groupsMenuBtn=document.getElementById('groupsMenuBtn');
+
+
+    let searchModal:HTMLDivElement=document.getElementById('search-modal') as HTMLDivElement;
+    let searchModalInputBox=document.getElementById('search-modal-input-box') as HTMLDivElement;
+    let searchModalActive=false;
+    let searchModalInputBoxInput:HTMLInputElement=document.getElementById("search-modal-input-box-input") as HTMLInputElement;
+
     // Data Part 
 
     let dataLoaded={
@@ -86,13 +95,21 @@ interface Message{
         [key:string]:number
     }={};
 
+    let searchResults:{
+        _id:string,
+        name:string,
+        pic:string,
+        email?:string
+    }[]=[];
+
     //////////////////
 
     // Utility Functions
 
-    let _setMainData=(_data:any)=>{
+    let _setMainData=(_data:Message[])=>{
         console.log("Hello");
         console.log(data);
+        _data=_data.sort((a,b)=>new Date(a.timeStamp).getTime() - new Date(b.timeStamp).getTime());
         if(conversationMode && currentConversationId)
             data[currentConversationId]=_data;
         else if(currentGroupId)
@@ -175,6 +192,7 @@ interface Message{
     });
 
     let sendMessageHelper=(__attachments:any,_friendId:string)=>{
+        console.log(__attachments);
         socket.emit("send-message",{
             type:(conversationMode)?"CONVERSATION":"GROUP",
             _id:userData._id,
@@ -223,9 +241,9 @@ interface Message{
             }).then(res=>res.json())
             .then(_data=>{
                 if(_data.success){
-                    if(currentConversationId)
-                        sendMessageHelper(_data.data,_friendId);
-                    
+                    console.log(_data.data);
+                    sendMessageHelper(_data.data,_friendId);
+                    // TODO NOT WORKING
                     // RESET MESSAGE BOX
                     messageTextInput.value="";
                     (messagesControlInputBox.children[1].children[0].children[2] as HTMLImageElement).click();
@@ -240,9 +258,97 @@ interface Message{
     };
 
 
+    let searchForData=()=>{
+        console.log("HELLO OOOP",searchModalInputBoxInput.value);
+        socket.emit("search-results",{
+            type:conversationMode?"CONVERSATION":"GROUP",
+            keyword:searchModalInputBoxInput.value
+        },(e:any)=>{
+            if(e.success){
+                searchResults=e.data;
+                renderSearch();
+            }else{
+                alert(e.error);
+            }
+        })
+    };
+
+
+
     ////////////////////
 
     // Render Functions
+
+    // `<div class="item active" id="${group._id}">
+    //                     <img src="http://localhost:3001/fetch/getAttachment?${searchParams.toString()}" alt="pic" style="pointer-events: none;"/>
+    //                     <div class="details" style="pointer-events: none;">
+    //                         <h2 style="pointer-events: none;">${group.name}</h2>
+    //                         <h4 style="pointer-events: none;">05:52 AM</h4>
+    //                         <p style="pointer-events: none;">
+    //                             We have lake-front vacation rentals.
+    //                         </p>
+    //                     </div>
+    //                 </div>`
+
+    let renderSearch=()=>{
+        console.log(searchResults);
+        searchModal.innerHTML="";
+
+        let titlesMap=new Map();
+        dataTitles.conversations.forEach(e=>titlesMap.set(e.conversationId,true));
+        dataTitles.groups.forEach(e=>titlesMap.set(e._id,true));
+
+        if(searchResults.length===0){
+            searchModal.innerHTML=`<p>No Results</p>`;
+        }else{
+            let appended=false;
+            searchResults.forEach(e=>{
+                if((!titlesMap.get(e._id)) && (!(e._id==userData._id))){
+                    let searchParams = new URLSearchParams({
+                        fileName:e.pic,
+                        token:userData.token
+                    });
+                    appended=true;
+                    searchModal.innerHTML+=`
+                        <div class="item">
+                            <img src="${conversationMode?`http://localhost:3001/fetch/getUserPic?pic=${e.pic}`:`http://localhost:3001/fetch/getAttachment?${searchParams.toString()}`}" alt="pic" style="pointer-events: none;"/>
+                            <div class="details" style="pointer-events: none;">
+                                <h2>${e.name}</h2>
+                                ${conversationMode?`<h4>${e.email}</h4>`:""}
+                            </div>
+                            <img class="search-select" data-selectPic="${e.pic}" data-selectName="${e.name}"  data-selectId="${e._id}" style="margin-left: auto;" src="${conversationMode?"../assets/addUser.png":"../assets/addGroup.png"}" alt="addUser">
+                        </div>
+                    `;
+                }
+            });
+            if(!appended){
+                searchModal.innerHTML=`<p>No Results</p>`;
+            }
+        }
+    };
+
+    let renderNotifications=()=>{
+        // conversationsMenuBtn
+        // groupsMenuBtn
+        if(notifications["__groups__"]){
+            if(notifications["__groups__"]>0){
+                if(groupsMenuBtn) (groupsMenuBtn.children[0] as HTMLSpanElement).style.display="unset";
+                if(groupsMenuBtn) groupsMenuBtn.children[0].innerHTML=notifications["__groups__"]+"";
+            }else{
+                if(groupsMenuBtn) (groupsMenuBtn.children[0] as HTMLSpanElement).style.display="none";
+            }
+        }
+
+        if(notifications["__conversations__"]){
+            if(notifications["__conversations__"]>0){
+                if(conversationsMenuBtn) (conversationsMenuBtn.children[0] as HTMLSpanElement).style.display="unset";
+                if(conversationsMenuBtn) conversationsMenuBtn.children[0].innerHTML=notifications["__groups__"]+"";
+            }else{
+                if(conversationsMenuBtn) (conversationsMenuBtn.children[0] as HTMLSpanElement).style.display="none";
+            }
+        }
+    }
+
     let renderMessageDisplay=(single:boolean)=>{ // if single true append at the end else render complete list
         // check if not loaded
         if(!currentConversationId && !currentGroupId) return;
@@ -259,11 +365,70 @@ interface Message{
                 return;
             }
         }
+        // TODO HIDE MESSAGE DISPLAY DEFAULT MESSAGE
+        if(single){
+            if(messagesDisplay.children.length===1){
+                (messagesDisplay.children[0] as HTMLDivElement).style.display="none";
+            }
+            let __message:Message | null=null;
+            if(conversationMode && currentConversationId){
+                if(data[currentConversationId].length>0){
+                    __message=data[currentConversationId][data[currentConversationId].length-1];
+                }
+            }else if(conversationMode===false && currentGroupId){
+                if(data[currentGroupId].length>0){
+                    __message=data[currentGroupId][data[currentGroupId].length-1];
+                }
+            }
+            if(__message){
+                messagesDisplay.innerHTML+=`
+                    <div class="message ${(__message.sender._id===userData._id)?"right":"left"}">
+                        <div class="title">
+                            <img alt="titlePic" src="http://localhost:3001/fetch/getUserPic?pic=${__message.sender.pic}"/>
+                            <h2>${__message.sender.name}</h2>
+                            <h4>58:45 AM</h4>
+                        </div>
+                        <div class="details">
+                            ${__message.message}
+                        </div>
+                        <div class="extra">
+                            ${__message.attachments.map((e)=>{
+                                let searchParams = new URLSearchParams({
+                                    fileName:e,
+                                    token:userData.token
+                                });
+                                let lastIndex=e.lastIndexOf(".");
+                                if(lastIndex==-1){
+                                    return `<img alt="attach" class="attachement" src="../assets/attached.png" data-type="attachment" data-attachmentName="${e}"/>`;
+                                }
+                                let extention=e.substring(lastIndex);
+                                if(extention==='.jpg' || extention==='.jpeg' || extention==='.png' || extention==='.webp'){
+                                    return `<img alt="pic0" src="http://localhost:3001/fetch/getAttachment?${searchParams.toString()}" data-type="pic" data-picName="${e}"/>`;
+                                }
+                                return `<img alt="attach" class="attachement" src="../assets/attached.png" data-type="attachment" data-attachmentName="${e}"/>`;  
+                            })}
+                        </div>
+                    </div>
+                    `;
+                messagesDisplay.scrollTop = messagesDisplay.scrollHeight;
+            }
+            return;
+        }   
         // clear
         for(let i=messagesDisplay.children.length-1;i>=1;i--)
             messagesDisplay.removeChild(messagesDisplay.children[i]);
         // render
+        let alreadyHidden=false;
+        if(((conversationMode)?data[currentConversationId!]:data[currentGroupId!]).length==0){
+            (messagesDisplay.children[0] as HTMLDivElement).style.display="flex";
+        }
         ((conversationMode)?data[currentConversationId!]:data[currentGroupId!]).forEach(e=>{
+            if(!alreadyHidden){
+                alreadyHidden=true;
+                if(messagesDisplay.children.length===1){
+                    (messagesDisplay.children[0] as HTMLDivElement).style.display="none";
+                }
+            }
             messagesDisplay.innerHTML+=`
             <div class="message ${(e.sender._id===userData._id)?"right":"left"}">
                 <div class="title">
@@ -276,13 +441,17 @@ interface Message{
                 </div>
                 <div class="extra">
                     ${e.attachments.map((e)=>{
+                        let searchParams = new URLSearchParams({
+                            fileName:e,
+                            token:userData.token
+                        });
                         let lastIndex=e.lastIndexOf(".");
                         if(lastIndex==-1){
                             return `<img alt="attach" class="attachement" src="../assets/attached.png" data-type="attachment" data-attachmentName="${e}"/>`;
                         }
                         let extention=e.substring(lastIndex);
                         if(extention==='.jpg' || extention==='.jpeg' || extention==='.png' || extention==='.webp'){
-                            return `<img alt="pic0" src="http://localhost:3001/fetch/getPostPic?pic=${e}&token=${userData.token}" data-type="pic" data-picName="${e}"/>`;
+                            return `<img alt="pic0" src="http://localhost:3001/fetch/getAttachment?${searchParams.toString()}" data-type="pic" data-picName="${e}"/>`;
                         }
                         return `<img alt="attach" class="attachement" src="../assets/attached.png" data-type="attachment" data-attachmentName="${e}"/>`;  
                     })}
@@ -290,6 +459,7 @@ interface Message{
             </div>
             `;
         });
+        messagesDisplay.scrollTop = messagesDisplay.scrollHeight;
     }
 
     let renderAsideMenu=()=>{
@@ -304,7 +474,35 @@ interface Message{
         console.log(asideMenuDisplay.children.length);
         // render
         if(conversationMode){
-
+           // TODO
+            dataTitles.conversations.forEach(conversation=>{
+                if(currentConversationId && (conversation.conversationId===currentConversationId)){
+                    asideMenuDisplay.innerHTML+=`<div class="item active" id="${conversation.conversationId}">
+                        <img src="http://localhost:3001/fetch/getUserPic?pic=${conversation.userPic}" alt="pic" style="pointer-events: none;"/>
+                        <div class="details" style="pointer-events: none;">
+                            <h2 style="pointer-events: none;">${conversation.userName}</h2>
+                            <h4 style="pointer-events: none;">05:52 AM</h4>
+                            <p style="pointer-events: none;">
+                                We have lake-front vacation rentals.
+                            </p>
+                        </div>
+                    </div>`;
+                }else{
+                    asideMenuDisplay.innerHTML+=`<div class="item" id="${conversation.conversationId}">
+                        <img src="http://localhost:3001/fetch/getUserPic?pic=${conversation.userPic}" alt="pic" style="pointer-events: none;"/>
+                        <div class="details" style="pointer-events: none;">
+                            <h2 style="pointer-events: none;">${conversation.userName}</h2>
+                            <h4 style="pointer-events: none;">05:52 AM</h4>
+                            <p style="pointer-events: none;">
+                                We have lake-front vacation rentals.
+                            </p>
+                        </div>
+                    </div>`;
+                }
+            });
+           if(currentConversationId){
+               currentConversationItemMenu=document.getElementById(currentConversationId);
+           }
         }else{
             dataTitles.groups.forEach(group=>{
                 let searchParams = new URLSearchParams({
@@ -335,7 +533,10 @@ interface Message{
                         </div>
                     </div>`;
                 }
-            })
+            });
+            if(currentGroupId){
+                currentGroupItemMenu=document.getElementById(currentGroupId);
+            }
         }
     }
 
@@ -476,7 +677,7 @@ interface Message{
         }
 
         // On any item in aside menu click handler
-        if(e.target.id && (e.target.id.length>22)) { // it's an object id
+        if(e.target.id && (e.target.id.length>22) && (e.target.id!=='aside-default-words-view')) { // it's an object id
             console.log("Object ID DETECTED!",e.target.id);
             if(conversationMode) {
                 currentConversationId=e.target.id;
@@ -489,6 +690,8 @@ interface Message{
                 currentGroupItemMenu=e.target;
                 e.target.classList.add('active');
             }
+
+            e.target?.classList.remove('seenow');
 
             renderMessageDisplayMenus(true);
             renderMessageDisplay(false);
@@ -522,24 +725,141 @@ interface Message{
         handleMessageFileInputs()
     });
 
+
+    searchModal.addEventListener('click',(e:any)=>{
+        if(e.target.className==="search-select"){
+            let id=e.target.getAttribute("data-selectId");
+            let name=e.target.getAttribute("data-selectName");
+            let pic=e.target.getAttribute("data-selectPic");
+            if(conversationMode) socket.emit("create-conversion",{
+                _id:userData._id,
+                friendId:id,
+                token:userData.token
+            },(e:any)=>{
+                // TODO
+                if(e.success){
+                    dataTitles.conversations.push({
+                        conversationId:e.data.conversationId,
+                        userId:id,
+                        userName:name,
+                        userPic:pic
+                    });
+                    renderSearch();
+                    renderAsideMenu();
+                    data[e.data.conversationId]=[];
+                    renderMessageDisplay(false);
+                }else{
+                    alert(e.error);
+                }
+            });
+            else socket.emit("join-group",{
+                _id:userData._id,
+                groupId:id,
+                token:userData.token
+            },(e:any)=>{
+                if(e.success){
+                    // ADD to dataTitles
+                    dataTitles.groups.push({
+                        _id:id,
+                        name:name,
+                        pic:pic
+                    });
+                    renderSearch();
+                    renderAsideMenu();
+                    // Load Its Messages
+                    data[id]=e.data;
+                    renderMessageDisplay(false);
+                }else{
+                    alert(e.error);
+                }
+            });
+        }
+    });
+
     // Listening to events
 
     socket.on("hello",()=>{
         console.log("Hello");
         loadTileData("conversations");
+        socket.emit("link-id",userData._id);
     });
 
     socket.on("message-received",(e:{
         type:string,
-        data:Message,
+        data:any,
         typeId:string
     })=>{
         // type:"GROUP",
         // data:message,
         // typeId:data.groupId!
+        console.log("Message Recived",e);
+        if(e.type==="GROUP"){
+            let tempData={
+                ...e.data._doc,
+                sender:e.data.sender
+            };
+            e.data=tempData;
+        }else{
+            let tempData={
+                ...e.data._doc,
+                sender:e.data.sender
+            };
+            e.data=tempData;
+        }
         if(data[e.typeId]) data[e.typeId].push(e.data);
 
+        if((currentGroupId!==e.typeId) && (currentConversationId!==e.typeId)){
+            document.getElementById(e.typeId)?.classList.add('seenow');
+        }
+
         // render and notifications system TODO
+        if(conversationMode===false && e.type==="GROUP"){
+            if(currentGroupId===e.typeId){
+                //render single
+                renderMessageDisplay(true);
+            }else{
+                // notofication
+                if(notifications[e.typeId]) notifications[e.typeId]++;
+                else notifications[e.typeId]=1;
+                if(notifications["__groups__"])
+                    notifications["__groups__"]++;
+                else notifications["__groups__"]=1;
+                // renderNotifications();
+
+            }
+        }else if(conversationMode===true && e.type==="CONVERSATION"){
+            if(currentConversationId===e.typeId){
+                //render single
+                renderMessageDisplay(true);
+            }else{
+                // notofication
+                if(notifications[e.typeId]) notifications[e.typeId]++;
+                else notifications[e.typeId]=1;
+                if(notifications["__conversations__"])
+                    notifications["__conversations__"]++;
+                else notifications["__conversations__"]=1;
+                // renderNotifications();
+
+            }
+        }
+    });
+
+    socket.on("new-conversation",(e:any)=>{
+        dataTitles.conversations.push(e);
+        data[e.conversationId]=[];
+        renderAsideMenu();
+    });
+
+    searchModalInputBox.addEventListener('click',(e:any)=>{
+        if(e.target.id==='search-modal-input-box-input'){
+            if(!searchModalActive) searchModal.style.display="unset";
+            else searchModal.style.display="none";
+            console.log("INPUT SELECTED");
+            searchModalActive=!searchModalActive;
+        }else if(e.target.id==="search-modal-input-box-search-btn"){
+            searchForData();
+            console.log("INPUT SELECTED BTN");
+        }
     });
 
     homeConversationsViewInit=conversationsInit;

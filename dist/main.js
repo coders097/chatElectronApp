@@ -164,6 +164,10 @@ ipcMain.on('delete-user', () => {
     setUserData("LOGOUT", {});
     createAuthWindow();
 });
+ipcMain.on("logOutUser", () => {
+    setUserData("LOGOUT", {});
+    createAuthWindow();
+});
 app.on('ready', createAuthWindow);
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {

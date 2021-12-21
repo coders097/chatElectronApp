@@ -238,6 +238,11 @@ ipcMain.on('delete-user',()=>{
     createAuthWindow();
 });
 
+ipcMain.on("logOutUser",()=>{
+    setUserData("LOGOUT",{} as User);
+    createAuthWindow();
+});
+
 
 // *******************
 

@@ -153,6 +153,10 @@ interface User{
         profilePasswordInput.defaultValue="";
     }
 
+    let logOut=()=>{
+        ipc.send("logOutUser");
+    }
+
     profileBtnsView.addEventListener('click',(e)=>{
         switch((e.target as HTMLElement).id){
             case "editProfileBtn":
@@ -171,6 +175,8 @@ interface User{
             case "editProfileDeleteBtn":
                 deleteProfile();
                 break;
+            case "logOutUserBtn":
+                logOut();
             default:
                 console.log("NOTHING!");
         }

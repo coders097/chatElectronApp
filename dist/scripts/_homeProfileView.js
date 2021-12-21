@@ -143,6 +143,9 @@ let homeProfileViewInit = null;
         profileEmailInput.defaultValue = userData.email;
         profilePasswordInput.defaultValue = "";
     };
+    let logOut = () => {
+        ipc.send("logOutUser");
+    };
     profileBtnsView.addEventListener('click', (e) => {
         switch (e.target.id) {
             case "editProfileBtn":
@@ -161,6 +164,8 @@ let homeProfileViewInit = null;
             case "editProfileDeleteBtn":
                 deleteProfile();
                 break;
+            case "logOutUserBtn":
+                logOut();
             default:
                 console.log("NOTHING!");
         }
