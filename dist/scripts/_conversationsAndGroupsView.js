@@ -49,24 +49,19 @@ let homeGroupsViewInit = null;
     let notifications = {};
     let searchResults = [];
     let _setMainData = (_data) => {
-        console.log("Hello");
-        console.log(data);
         _data = _data.sort((a, b) => new Date(a.timeStamp).getTime() - new Date(b.timeStamp).getTime());
         if (conversationMode && currentConversationId)
             data[currentConversationId] = _data;
         else if (currentGroupId)
             data[currentGroupId] = _data;
-        console.log(data);
     };
     let loadTileData = (type) => {
         let event = (type === "conversations") ? "get-all-conversations-info" : "get-all-groups-info";
-        console.log("Hello Part 1");
         let body = {
             _id: userData._id,
             token: userData.token
         };
         socket.emit(event, body, (res) => {
-            console.log(res);
             if (res.success) {
                 if (type === 'conversations')
                     dataTitles.conversations = res.data;
@@ -88,7 +83,6 @@ let homeGroupsViewInit = null;
             token: userData.token
         }, (e) => {
             if (e.success) {
-                console.log("Main Data", e.data);
                 _setMainData(e.data);
                 renderMessageDisplay(false);
             }
@@ -128,7 +122,6 @@ let homeGroupsViewInit = null;
         handleMessageFileInputs();
     });
     let sendMessageHelper = (__attachments, _friendId) => {
-        console.log(__attachments);
         socket.emit("send-message", {
             type: (conversationMode) ? "CONVERSATION" : "GROUP",
             _id: userData._id,
@@ -189,7 +182,6 @@ let homeGroupsViewInit = null;
             sendMessageHelper([], _friendId);
     };
     let searchForData = () => {
-        console.log("HELLO OOOP", searchModalInputBoxInput.value);
         socket.emit("search-results", {
             type: conversationMode ? "CONVERSATION" : "GROUP",
             keyword: searchModalInputBoxInput.value
@@ -224,7 +216,6 @@ let homeGroupsViewInit = null;
         }
     };
     let renderSearch = () => {
-        console.log(searchResults);
         searchModal.innerHTML = "";
         let titlesMap = new Map();
         dataTitles.conversations.forEach(e => titlesMap.set(e.conversationId, true));
@@ -341,9 +332,9 @@ let homeGroupsViewInit = null;
                     }
                     let extention = e.substring(lastIndex);
                     if (extention === '.jpg' || extention === '.jpeg' || extention === '.png' || extention === '.webp') {
-                        return `<img alt="pic0" src="http://localhost:3001/fetch/getAttachment?${searchParams.toString()}" data-type="pic" data-picName="${e}"/>`;
+                        return `<img alt="pic0" src="http://localhost:3001/fetch/getAttachment?${searchParams.toString()}" data-type="pic" data-picName="${e}" name="${e}"/>`;
                     }
-                    return `<img alt="attach" class="attachement" src="../assets/attached.png" data-type="attachment" data-attachmentName="${e}"/>`;
+                    return `<img alt="attach" class="attachement" src="../assets/attached.png" data-type="attachment" data-attachmentName="${e}" name="${e}"/>`;
                 })}
                         </div>
                     </div>
@@ -401,11 +392,9 @@ let homeGroupsViewInit = null;
     };
     let renderAsideMenu = () => {
         renderDefaultMessageAside();
-        console.log(asideMenuDisplay.children.length);
         for (let i = asideMenuDisplay.children.length - 1; i >= 2; i--) {
             asideMenuDisplay.removeChild(asideMenuDisplay.children[i]);
         }
-        console.log(asideMenuDisplay.children.length);
         if (conversationMode) {
             dataTitles.conversations.forEach(conversation => {
                 if (currentConversationId && (conversation.conversationId === currentConversationId)) {
@@ -475,7 +464,6 @@ let homeGroupsViewInit = null;
         }
     };
     let renderDefaultMessageAside = () => {
-        console.log("Render");
         if (conversationMode) {
             if (dataTitles.conversations.length == 0) {
                 asideMenuDisplay.children[1].style.display = "flex";
@@ -555,7 +543,6 @@ let homeGroupsViewInit = null;
                                     name: e.name,
                                     token: userData.token
                                 }, (args) => {
-                                    console.log(args);
                                     if (args.success) {
                                         if (conversationMode)
                                             dataTitles.conversations.push(args.data);
@@ -583,7 +570,6 @@ let homeGroupsViewInit = null;
                             name: e.name,
                             token: userData.token
                         }, (args) => {
-                            console.log(args);
                             if (args.success) {
                                 if (conversationMode)
                                     dataTitles.conversations.push(args.data);
@@ -603,7 +589,6 @@ let homeGroupsViewInit = null;
                 console.log("NOTHING");
         }
         if (e.target.id && (e.target.id.length > 22) && (e.target.id !== 'aside-default-words-view')) {
-            console.log("Object ID DETECTED!", e.target.id);
             if (conversationMode) {
                 currentConversationId = e.target.id;
                 if (currentConversationItemMenu)
@@ -713,13 +698,11 @@ let homeGroupsViewInit = null;
         }
     }));
     socket.on("hello", () => {
-        console.log("Hello");
         loadTileData("conversations");
         socket.emit("link-id", userData._id);
     });
     socket.on("message-received", (e) => {
         var _a;
-        console.log("Message Recived", e);
         if (e.type === "GROUP") {
             let tempData = Object.assign(Object.assign({}, e.data._doc), { sender: e.data.sender });
             e.data = tempData;
@@ -809,12 +792,33 @@ let homeGroupsViewInit = null;
                 searchModal.style.display = "unset";
             else
                 searchModal.style.display = "none";
-            console.log("INPUT SELECTED");
             searchModalActive = !searchModalActive;
         }
         else if (e.target.id === "search-modal-input-box-search-btn") {
             searchForData();
-            console.log("INPUT SELECTED BTN");
+        }
+    });
+    messagesDisplay.addEventListener('click', (e) => {
+        let type = e.target.getAttribute("data-type");
+        if (type === "pic") {
+            let fileName = e.target.getAttribute("data-picName");
+            if (fileName) {
+                let searchParams = new URLSearchParams({
+                    fileName: fileName,
+                    token: userData.token
+                });
+                ipc.send("download-button", `http://localhost:3001/fetch/getAttachment?${searchParams.toString()}`);
+            }
+        }
+        else if (type === "attachment") {
+            let fileName = e.target.getAttribute("data-attachmentName");
+            if (fileName) {
+                let searchParams = new URLSearchParams({
+                    fileName: fileName,
+                    token: userData.token
+                });
+                ipc.send("download-button", `http://localhost:3001/fetch/getAttachment?${searchParams.toString()}`);
+            }
         }
     });
     homeConversationsViewInit = conversationsInit;

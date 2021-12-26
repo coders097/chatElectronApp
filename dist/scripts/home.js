@@ -26,7 +26,6 @@ var _a;
     ipc.on('new-user-data', (e, args) => {
         userData = Object.assign({}, args);
         updateAsideUserInfo();
-        console.log("new user data home", userData);
     });
     (_a = document.querySelector('.left-part')) === null || _a === void 0 ? void 0 : _a.addEventListener('click', e => {
         switch (e.target.id) {

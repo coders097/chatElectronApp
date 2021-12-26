@@ -55,7 +55,7 @@ interface Message{
     let electron=require('electron');
     const prompt = require('electron-prompt');
     const ipc = electron.ipcRenderer;
-    userData=ipc.sendSync("userDataContext",{});
+    userData=ipc.sendSync("userDataContext",{}); 
 
     let messagesDisplay:HTMLDivElement=document.querySelector("main .display .messages") as HTMLDivElement;
     let asideMenuDisplay:HTMLDivElement=document.querySelector('main .aside') as HTMLDivElement;
@@ -107,27 +107,27 @@ interface Message{
     // Utility Functions
 
     let _setMainData=(_data:Message[])=>{
-        console.log("Hello");
-        console.log(data);
+        // console.log("Hello");
+        // console.log(data);
         _data=_data.sort((a,b)=>new Date(a.timeStamp).getTime() - new Date(b.timeStamp).getTime());
         if(conversationMode && currentConversationId)
             data[currentConversationId]=_data;
         else if(currentGroupId)
             data[currentGroupId]=_data;
-        console.log(data);
+        // console.log(data);
         
     }
 
 
     let loadTileData=(type:string)=>{
         let event=(type==="conversations")?"get-all-conversations-info":"get-all-groups-info";
-        console.log("Hello Part 1");
+        // console.log("Hello Part 1");
         let body={
             _id:userData._id,
             token:userData.token
         };
         socket.emit(event,body,(res:any)=>{
-            console.log(res);
+            // console.log(res);
             if(res.success){
                 // load data
                 if(type==='conversations') dataTitles.conversations=res.data;
@@ -151,7 +151,7 @@ interface Message{
             token:userData.token
         },(e:any)=>{
             if(e.success){
-                console.log("Main Data",e.data);
+                // console.log("Main Data",e.data);
                 _setMainData(e.data);
                 renderMessageDisplay(false);
             }else{
@@ -192,7 +192,7 @@ interface Message{
     });
 
     let sendMessageHelper=(__attachments:any,_friendId:string)=>{
-        console.log(__attachments);
+        // console.log(__attachments);
         socket.emit("send-message",{
             type:(conversationMode)?"CONVERSATION":"GROUP",
             _id:userData._id,
@@ -259,7 +259,7 @@ interface Message{
 
 
     let searchForData=()=>{
-        console.log("HELLO OOOP",searchModalInputBoxInput.value);
+        // console.log("HELLO OOOP",searchModalInputBoxInput.value);
         socket.emit("search-results",{
             type:conversationMode?"CONVERSATION":"GROUP",
             keyword:searchModalInputBoxInput.value
@@ -310,7 +310,7 @@ interface Message{
     //                 </div>`
 
     let renderSearch=()=>{
-        console.log(searchResults);
+        // console.log(searchResults);
         searchModal.innerHTML="";
 
         let titlesMap=new Map();
@@ -422,9 +422,9 @@ interface Message{
                                 }
                                 let extention=e.substring(lastIndex);
                                 if(extention==='.jpg' || extention==='.jpeg' || extention==='.png' || extention==='.webp'){
-                                    return `<img alt="pic0" src="http://localhost:3001/fetch/getAttachment?${searchParams.toString()}" data-type="pic" data-picName="${e}"/>`;
+                                    return `<img alt="pic0" src="http://localhost:3001/fetch/getAttachment?${searchParams.toString()}" data-type="pic" data-picName="${e}" name="${e}"/>`;
                                 }
-                                return `<img alt="attach" class="attachement" src="../assets/attached.png" data-type="attachment" data-attachmentName="${e}"/>`;  
+                                return `<img alt="attach" class="attachement" src="../assets/attached.png" data-type="attachment" data-attachmentName="${e}" name="${e}"/>`;  
                             })}
                         </div>
                     </div>
@@ -486,13 +486,13 @@ interface Message{
     let renderAsideMenu=()=>{
         renderDefaultMessageAside();
         // clear
-        console.log(asideMenuDisplay.children.length);
+        // console.log(asideMenuDisplay.children.length);
         // iterate backwards stable
         for(let i=asideMenuDisplay.children.length-1;i>=2;i--){
             // asideMenuDisplay.children[i].remove(); // not stable
             asideMenuDisplay.removeChild(asideMenuDisplay.children[i]);
         }
-        console.log(asideMenuDisplay.children.length);
+        // console.log(asideMenuDisplay.children.length);
         // render
         if(conversationMode){
            // TODO
@@ -562,7 +562,7 @@ interface Message{
     }
 
     let renderDefaultMessageAside=()=>{
-        console.log("Render");
+        // console.log("Render");
         if(conversationMode){
             if(dataTitles.conversations.length==0){
                 (asideMenuDisplay.children[1] as HTMLDivElement).style.display="flex";
@@ -643,7 +643,7 @@ interface Message{
                                     name:e.name,
                                     token:userData.token
                                 },(args:any)=>{
-                                    console.log(args);
+                                    // console.log(args);
                                     if(args.success){
                                         if(conversationMode) dataTitles.conversations.push(args.data);
                                         else dataTitles.groups.push(args.data);
@@ -673,7 +673,7 @@ interface Message{
                             name:e.name,
                             token:userData.token
                         },(args:any)=>{
-                            console.log(args);
+                            // console.log(args);
                             if(args.success){
                                 if(conversationMode) dataTitles.conversations.push(args.data);
                                 else dataTitles.groups.push(args.data);
@@ -699,7 +699,7 @@ interface Message{
 
         // On any item in aside menu click handler
         if(e.target.id && (e.target.id.length>22) && (e.target.id!=='aside-default-words-view')) { // it's an object id
-            console.log("Object ID DETECTED!",e.target.id);
+            // console.log("Object ID DETECTED!",e.target.id);
             if(conversationMode) {
                 currentConversationId=e.target.id;
                 if(currentConversationItemMenu) currentConversationItemMenu.classList.remove("active");
@@ -817,7 +817,7 @@ interface Message{
     // Listening to events
 
     socket.on("hello",()=>{
-        console.log("Hello");
+        // console.log("Hello");
         loadTileData("conversations");
         socket.emit("link-id",userData._id);
     });
@@ -830,7 +830,7 @@ interface Message{
         // type:"GROUP",
         // data:message,
         // typeId:data.groupId!
-        console.log("Message Recived",e);
+        // console.log("Message Recived",e);
         if(e.type==="GROUP"){
             let tempData={
                 ...e.data._doc,
@@ -926,11 +926,36 @@ interface Message{
         if(e.target.id==='search-modal-input-box-input'){
             if(!searchModalActive) searchModal.style.display="unset";
             else searchModal.style.display="none";
-            console.log("INPUT SELECTED");
+            // console.log("INPUT SELECTED");
             searchModalActive=!searchModalActive;
         }else if(e.target.id==="search-modal-input-box-search-btn"){
             searchForData();
-            console.log("INPUT SELECTED BTN");
+            // console.log("INPUT SELECTED BTN");
+        }
+    });
+
+    messagesDisplay.addEventListener('click',(e:any)=>{
+        // data-type="attachment" data-attachmentName="${e}"
+        // data-type="pic" data-picName="${e}"
+        let type=e.target.getAttribute("data-type");
+        if(type==="pic"){
+            let fileName=e.target.getAttribute("data-picName");
+            if(fileName){
+                let searchParams = new URLSearchParams({
+                    fileName:fileName,
+                    token:userData.token
+                });
+                ipc.send("download-button",`http://localhost:3001/fetch/getAttachment?${searchParams.toString()}`);
+            }
+        }else if(type==="attachment"){
+            let fileName=e.target.getAttribute("data-attachmentName");
+            if(fileName){
+                let searchParams = new URLSearchParams({
+                    fileName:fileName,
+                    token:userData.token
+                });
+                ipc.send("download-button",`http://localhost:3001/fetch/getAttachment?${searchParams.toString()}`);
+            }
         }
     });
 

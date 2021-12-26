@@ -5,6 +5,7 @@ const BrowserWindow=electron.BrowserWindow;
 const ipcMain = require('electron').ipcMain;
 const dialog = electron.dialog;
 let onAppStartFlag=false;
+const {download} = require('electron-dl');
 
 // ----
 import * as remoteMain from '@electron/remote/main';
@@ -241,6 +242,15 @@ ipcMain.on('delete-user',()=>{
 ipcMain.on("logOutUser",()=>{
     setUserData("LOGOUT",{} as User);
     createAuthWindow();
+});
+
+
+
+ipcMain.on('download-button', async (e,url) => {
+ 	// console.log(url);
+    await download(homeWin, url,{
+        saveAs:true
+     });
 });
 
 

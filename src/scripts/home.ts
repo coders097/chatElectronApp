@@ -38,7 +38,7 @@
     ipc.on('new-user-data',(e,args)=>{
         userData={...args};
         updateAsideUserInfo();
-        console.log("new user data home",userData);
+        // console.log("new user data home",userData);
     });
 
     // Add Btn Clicks Handler to ASIDE BTN
