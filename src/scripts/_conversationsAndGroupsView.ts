@@ -273,6 +273,25 @@ interface Message{
         })
     };
 
+    let deleteConversationOrGroup=()=>{
+        if(conversationMode){
+            if(currentConversationId){
+                socket.emit("deleteConversationOrGroup",{
+                    type:"CONVERSATION",
+                    _id:currentConversationId,
+                    token:userData.token
+                });
+            }
+        }else{
+            if(currentGroupId){
+                socket.emit("deleteConversationOrGroup",{
+                    type:"GROUP",
+                    _id:currentGroupId,
+                    token:userData.token
+                });
+            }
+        }
+    }
 
 
     ////////////////////
@@ -429,35 +448,37 @@ interface Message{
                     (messagesDisplay.children[0] as HTMLDivElement).style.display="none";
                 }
             }
-            messagesDisplay.innerHTML+=`
-            <div class="message ${(e.sender._id===userData._id)?"right":"left"}">
-                <div class="title">
-                    <img alt="titlePic" src="http://localhost:3001/fetch/getUserPic?pic=${e.sender.pic}"/>
-                    <h2>${e.sender.name}</h2>
-                    <h4>58:45 AM</h4>
+            if(e.sender){
+                messagesDisplay.innerHTML+=`
+                <div class="message ${(e.sender._id===userData._id)?"right":"left"}">
+                    <div class="title">
+                        <img alt="titlePic" src="http://localhost:3001/fetch/getUserPic?pic=${e.sender.pic}"/>
+                        <h2>${e.sender.name}</h2>
+                        <h4>58:45 AM</h4>
+                    </div>
+                    <div class="details">
+                        ${e.message}
+                    </div>
+                    <div class="extra">
+                        ${e.attachments.map((e)=>{
+                            let searchParams = new URLSearchParams({
+                                fileName:e,
+                                token:userData.token
+                            });
+                            let lastIndex=e.lastIndexOf(".");
+                            if(lastIndex==-1){
+                                return `<img alt="attach" class="attachement" src="../assets/attached.png" data-type="attachment" data-attachmentName="${e}"/>`;
+                            }
+                            let extention=e.substring(lastIndex);
+                            if(extention==='.jpg' || extention==='.jpeg' || extention==='.png' || extention==='.webp'){
+                                return `<img alt="pic0" src="http://localhost:3001/fetch/getAttachment?${searchParams.toString()}" data-type="pic" data-picName="${e}"/>`;
+                            }
+                            return `<img alt="attach" class="attachement" src="../assets/attached.png" data-type="attachment" data-attachmentName="${e}"/>`;  
+                        })}
+                    </div>
                 </div>
-                <div class="details">
-                    ${e.message}
-                </div>
-                <div class="extra">
-                    ${e.attachments.map((e)=>{
-                        let searchParams = new URLSearchParams({
-                            fileName:e,
-                            token:userData.token
-                        });
-                        let lastIndex=e.lastIndexOf(".");
-                        if(lastIndex==-1){
-                            return `<img alt="attach" class="attachement" src="../assets/attached.png" data-type="attachment" data-attachmentName="${e}"/>`;
-                        }
-                        let extention=e.substring(lastIndex);
-                        if(extention==='.jpg' || extention==='.jpeg' || extention==='.png' || extention==='.webp'){
-                            return `<img alt="pic0" src="http://localhost:3001/fetch/getAttachment?${searchParams.toString()}" data-type="pic" data-picName="${e}"/>`;
-                        }
-                        return `<img alt="attach" class="attachement" src="../assets/attached.png" data-type="attachment" data-attachmentName="${e}"/>`;  
-                    })}
-                </div>
-            </div>
-            `;
+                `;
+            }
         });
         messagesDisplay.scrollTop = messagesDisplay.scrollHeight;
     }
@@ -776,6 +797,23 @@ interface Message{
         }
     });
 
+    messagesTopMenu.addEventListener('click',async (e:any)=>{
+        switch(e.target.id){
+            case "delete-floating-menu":
+                let check=await prompt({
+                    title: 'Sure, you wanna delete this!',
+                    label: 'Type Yes/No',
+                    type:"input"
+                });
+                if(check!=null && check==="Yes"){
+                    deleteConversationOrGroup();
+                }
+                break;
+            default:
+                console.log("Nothing!");
+        }
+    });
+
     // Listening to events
 
     socket.on("hello",()=>{
@@ -848,6 +886,40 @@ interface Message{
         dataTitles.conversations.push(e);
         data[e.conversationId]=[];
         renderAsideMenu();
+    });
+
+    socket.on("delete-group-conversation",(e:any)=>{
+        if(e.type==="CONVERSATION"){
+            dataTitles.conversations=dataTitles.conversations.filter(conver=>conver.conversationId!==e._id);
+            if(data[e._id]) {
+                delete data[e._id];
+            }
+            if(currentConversationId===e._id){
+                currentConversationId=null;
+            }
+            renderAsideMenu();
+            messagesDisplay.style.display="flex";
+            (messagesDisplay.children[0] as HTMLDivElement).style.display="flex";
+            for(let i=messagesDisplay.children.length-1;i>=1;i--)
+            messagesDisplay.removeChild(messagesDisplay.children[i]);
+            messagesTopMenu.style.display="none";
+            messagesControlInputBox.style.display="none";
+        }else{
+            dataTitles.groups=dataTitles.groups.filter(grou=>grou._id!==e._id);
+            if(data[e._id]) {
+                delete data[e._id];
+            }
+            if(currentGroupId===e._id){
+                currentGroupId=null;
+            }
+            renderAsideMenu();
+            messagesDisplay.style.display="flex";
+            (messagesDisplay.children[0] as HTMLDivElement).style.display="flex";
+            for(let i=messagesDisplay.children.length-1;i>=1;i--)
+            messagesDisplay.removeChild(messagesDisplay.children[i]);
+            messagesTopMenu.style.display="none";
+            messagesControlInputBox.style.display="none";
+        }
     });
 
     searchModalInputBox.addEventListener('click',(e:any)=>{

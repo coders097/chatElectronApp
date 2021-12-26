@@ -1,4 +1,13 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 let homeConversationsViewInit = null;
 let homeGroupsViewInit = null;
 {
@@ -194,6 +203,26 @@ let homeGroupsViewInit = null;
             }
         });
     };
+    let deleteConversationOrGroup = () => {
+        if (conversationMode) {
+            if (currentConversationId) {
+                socket.emit("deleteConversationOrGroup", {
+                    type: "CONVERSATION",
+                    _id: currentConversationId,
+                    token: userData.token
+                });
+            }
+        }
+        else {
+            if (currentGroupId) {
+                socket.emit("deleteConversationOrGroup", {
+                    type: "GROUP",
+                    _id: currentGroupId,
+                    token: userData.token
+                });
+            }
+        }
+    };
     let renderSearch = () => {
         console.log(searchResults);
         searchModal.innerHTML = "";
@@ -336,35 +365,37 @@ let homeGroupsViewInit = null;
                     messagesDisplay.children[0].style.display = "none";
                 }
             }
-            messagesDisplay.innerHTML += `
-            <div class="message ${(e.sender._id === userData._id) ? "right" : "left"}">
-                <div class="title">
-                    <img alt="titlePic" src="http://localhost:3001/fetch/getUserPic?pic=${e.sender.pic}"/>
-                    <h2>${e.sender.name}</h2>
-                    <h4>58:45 AM</h4>
-                </div>
-                <div class="details">
-                    ${e.message}
-                </div>
-                <div class="extra">
-                    ${e.attachments.map((e) => {
-                let searchParams = new URLSearchParams({
-                    fileName: e,
-                    token: userData.token
-                });
-                let lastIndex = e.lastIndexOf(".");
-                if (lastIndex == -1) {
+            if (e.sender) {
+                messagesDisplay.innerHTML += `
+                <div class="message ${(e.sender._id === userData._id) ? "right" : "left"}">
+                    <div class="title">
+                        <img alt="titlePic" src="http://localhost:3001/fetch/getUserPic?pic=${e.sender.pic}"/>
+                        <h2>${e.sender.name}</h2>
+                        <h4>58:45 AM</h4>
+                    </div>
+                    <div class="details">
+                        ${e.message}
+                    </div>
+                    <div class="extra">
+                        ${e.attachments.map((e) => {
+                    let searchParams = new URLSearchParams({
+                        fileName: e,
+                        token: userData.token
+                    });
+                    let lastIndex = e.lastIndexOf(".");
+                    if (lastIndex == -1) {
+                        return `<img alt="attach" class="attachement" src="../assets/attached.png" data-type="attachment" data-attachmentName="${e}"/>`;
+                    }
+                    let extention = e.substring(lastIndex);
+                    if (extention === '.jpg' || extention === '.jpeg' || extention === '.png' || extention === '.webp') {
+                        return `<img alt="pic0" src="http://localhost:3001/fetch/getAttachment?${searchParams.toString()}" data-type="pic" data-picName="${e}"/>`;
+                    }
                     return `<img alt="attach" class="attachement" src="../assets/attached.png" data-type="attachment" data-attachmentName="${e}"/>`;
-                }
-                let extention = e.substring(lastIndex);
-                if (extention === '.jpg' || extention === '.jpeg' || extention === '.png' || extention === '.webp') {
-                    return `<img alt="pic0" src="http://localhost:3001/fetch/getAttachment?${searchParams.toString()}" data-type="pic" data-picName="${e}"/>`;
-                }
-                return `<img alt="attach" class="attachement" src="../assets/attached.png" data-type="attachment" data-attachmentName="${e}"/>`;
-            })}
+                })}
+                    </div>
                 </div>
-            </div>
-            `;
+                `;
+            }
         });
         messagesDisplay.scrollTop = messagesDisplay.scrollHeight;
     };
@@ -665,6 +696,22 @@ let homeGroupsViewInit = null;
                 });
         }
     });
+    messagesTopMenu.addEventListener('click', (e) => __awaiter(void 0, void 0, void 0, function* () {
+        switch (e.target.id) {
+            case "delete-floating-menu":
+                let check = yield prompt({
+                    title: 'Sure, you wanna delete this!',
+                    label: 'Type Yes/No',
+                    type: "input"
+                });
+                if (check != null && check === "Yes") {
+                    deleteConversationOrGroup();
+                }
+                break;
+            default:
+                console.log("Nothing!");
+        }
+    }));
     socket.on("hello", () => {
         console.log("Hello");
         loadTileData("conversations");
@@ -721,6 +768,40 @@ let homeGroupsViewInit = null;
         dataTitles.conversations.push(e);
         data[e.conversationId] = [];
         renderAsideMenu();
+    });
+    socket.on("delete-group-conversation", (e) => {
+        if (e.type === "CONVERSATION") {
+            dataTitles.conversations = dataTitles.conversations.filter(conver => conver.conversationId !== e._id);
+            if (data[e._id]) {
+                delete data[e._id];
+            }
+            if (currentConversationId === e._id) {
+                currentConversationId = null;
+            }
+            renderAsideMenu();
+            messagesDisplay.style.display = "flex";
+            messagesDisplay.children[0].style.display = "flex";
+            for (let i = messagesDisplay.children.length - 1; i >= 1; i--)
+                messagesDisplay.removeChild(messagesDisplay.children[i]);
+            messagesTopMenu.style.display = "none";
+            messagesControlInputBox.style.display = "none";
+        }
+        else {
+            dataTitles.groups = dataTitles.groups.filter(grou => grou._id !== e._id);
+            if (data[e._id]) {
+                delete data[e._id];
+            }
+            if (currentGroupId === e._id) {
+                currentGroupId = null;
+            }
+            renderAsideMenu();
+            messagesDisplay.style.display = "flex";
+            messagesDisplay.children[0].style.display = "flex";
+            for (let i = messagesDisplay.children.length - 1; i >= 1; i--)
+                messagesDisplay.removeChild(messagesDisplay.children[i]);
+            messagesTopMenu.style.display = "none";
+            messagesControlInputBox.style.display = "none";
+        }
     });
     searchModalInputBox.addEventListener('click', (e) => {
         if (e.target.id === 'search-modal-input-box-input') {

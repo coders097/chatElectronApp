@@ -71,30 +71,34 @@ let _ = (io) => {
                         let user = yield User_1.default.findById(data._id).populate({
                             path: "conversations",
                             populate: {
-                                path: "personOne personTwo"
-                            }
+                                path: "personOne personTwo",
+                                skipInvalidIds: true
+                            },
+                            skipInvalidIds: true
                         });
                         if (user) {
                             let conversationsList = [];
                             user.conversations.forEach((conversation) => {
-                                let _tempData = {
-                                    userId: "",
-                                    userName: "",
-                                    userPic: "",
-                                    conversationId: ""
-                                };
-                                _tempData.conversationId = conversation._id;
-                                if (conversation.personOne._id.toString() === data._id) {
-                                    _tempData.userId = conversation.personTwo._id;
-                                    _tempData.userName = conversation.personTwo.name;
-                                    _tempData.userPic = conversation.personTwo.pic;
+                                if (conversation.personOne && conversation.personTwo) {
+                                    let _tempData = {
+                                        userId: "",
+                                        userName: "",
+                                        userPic: "",
+                                        conversationId: ""
+                                    };
+                                    _tempData.conversationId = conversation._id;
+                                    if (conversation.personOne._id.toString() === data._id) {
+                                        _tempData.userId = conversation.personTwo._id;
+                                        _tempData.userName = conversation.personTwo.name;
+                                        _tempData.userPic = conversation.personTwo.pic;
+                                    }
+                                    else {
+                                        _tempData.userId = conversation.personOne._id;
+                                        _tempData.userName = conversation.personOne.name;
+                                        _tempData.userPic = conversation.personOne.pic;
+                                    }
+                                    conversationsList.push(_tempData);
                                 }
-                                else {
-                                    _tempData.userId = conversation.personOne._id;
-                                    _tempData.userName = conversation.personOne.name;
-                                    _tempData.userPic = conversation.personOne.pic;
-                                }
-                                conversationsList.push(_tempData);
                             });
                             cb({
                                 success: true,
@@ -109,6 +113,7 @@ let _ = (io) => {
                         }
                     }
                     catch (e) {
+                        console.log(e);
                         cb({
                             success: false,
                             error: "INVALID ID"
@@ -188,8 +193,10 @@ let _ = (io) => {
                             path: 'messages',
                             populate: {
                                 path: 'sender',
-                                select: "_id name pic"
-                            }
+                                select: "_id name pic",
+                                skipInvalidIds: true
+                            },
+                            skipInvalidIds: true
                         });
                         if (user && group) {
                             let index = group.users.find((id) => {
@@ -362,16 +369,20 @@ let _ = (io) => {
                             path: 'messages',
                             populate: {
                                 path: 'sender',
-                                select: "_id name pic"
-                            }
+                                select: "_id name pic",
+                                skipInvalidIds: true
+                            },
+                            skipInvalidIds: true
                         })) : (yield Conversation_1.default.findById(data.conversationId)
                             .slice('messages', -60)
                             .populate({
                             path: 'messages',
                             populate: {
                                 path: 'sender',
-                                select: "_id name pic"
-                            }
+                                select: "_id name pic",
+                                skipInvalidIds: true
+                            },
+                            skipInvalidIds: true
                         }));
                         if (chattingKeeper) {
                             let check = false;
@@ -531,6 +542,42 @@ let _ = (io) => {
                 }), (errorMessage) => {
                     console.log(errorMessage);
                 });
+        });
+        socket.on("deleteConversationOrGroup", (data) => {
+            if (data === null || data === void 0 ? void 0 : data.token) {
+                (0, socketJwtVerify_1.default)(data.token, () => __awaiter(void 0, void 0, void 0, function* () {
+                    if (data.type === "CONVERSATION") {
+                        Conversation_1.default.findByIdAndDelete(data._id).then((conversation) => {
+                            if ((conversation === null || conversation === void 0 ? void 0 : conversation.personOne) && mapUserIdToSocketId[conversation.personOne] && connectedClients[mapUserIdToSocketId[conversation.personOne]])
+                                connectedClients[mapUserIdToSocketId[conversation.personOne]].emit("delete-group-conversation", {
+                                    type: "CONVERSATION",
+                                    _id: data._id
+                                });
+                            if ((conversation === null || conversation === void 0 ? void 0 : conversation.personTwo) && mapUserIdToSocketId[conversation.personTwo] && connectedClients[mapUserIdToSocketId[conversation.personTwo]])
+                                connectedClients[mapUserIdToSocketId[conversation.personTwo]].emit("delete-group-conversation", {
+                                    type: "CONVERSATION",
+                                    _id: data._id
+                                });
+                        }).catch(err => {
+                            console.log(err);
+                        });
+                    }
+                    else {
+                        Group_1.default.findByIdAndRemove(data._id).then(() => {
+                            if (groupIdToNameMap[data._id])
+                                io.in(groupIdToNameMap[data._id])
+                                    .emit('delete-group-conversation', {
+                                    type: "GROUP",
+                                    _id: data._id
+                                });
+                        }).catch(e => {
+                            console.log(e);
+                        });
+                    }
+                }), (errorMessage) => {
+                    console.log(errorMessage);
+                });
+            }
         });
         socket.on('disconnect', () => {
             if (connectedClients[socket.id]) {
